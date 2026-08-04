@@ -2,7 +2,10 @@ import sqlite3
 from difflib import SequenceMatcher
 
 
+
 DATABASE_NAME = "chatbot/faq.db"
+# DATABASE = "chatbot.db"
+DATABASE = DATABASE_NAME
 
 
 def get_connection():
@@ -105,3 +108,144 @@ def search_question(user_question):
         return best_match
 
     return None
+
+def create_web_knowledge_table():
+
+    conn = sqlite3.connect(DATABASE)
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS web_knowledge(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        college TEXT NOT NULL,
+
+        page_title TEXT,
+
+        url TEXT UNIQUE,
+
+        content TEXT NOT NULL,
+
+        crawled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_college
+    ON web_knowledge(college)
+    """)
+
+    cursor.execute("""
+    CREATE INDEX IF NOT EXISTS idx_title
+    ON web_knowledge(page_title)
+    """)
+
+    conn.commit()
+
+    conn.close()
+
+def insert_web_knowledge(
+    college,
+    page_title,
+    url,
+    content
+):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT OR REPLACE INTO web_knowledge(
+        college,
+        page_title,
+        url,
+        content
+    )
+    VALUES(?,?,?,?)
+    """,(
+        college,
+        page_title,
+        url,
+        content
+    ))
+    conn.commit()
+    conn.close()
+
+def get_all_web_pages():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT
+            college,
+            page_title,
+            url,
+            content
+        FROM web_knowledge
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
+def create_web_chunks_table():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS web_chunks(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        college TEXT,
+        page_title TEXT,
+        url TEXT,
+        chunk_no INTEGER,
+        chunk_text TEXT
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+def insert_web_chunk(
+    college,
+    page_title,
+    url,
+    chunk_no,
+    chunk_text
+):
+
+    conn = sqlite3.connect(DATABASE)
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+    INSERT INTO web_chunks(
+
+        college,
+        page_title,
+        url,
+        chunk_no,
+        chunk_text
+    )
+    VALUES(?,?,?,?,?)
+    """,(
+       college,
+        page_title,
+        url,
+        chunk_no,
+        chunk_text
+    ))
+    conn.commit()
+    conn.close()
+
+def get_all_chunks():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("""
+    SELECT
+        college,
+        page_title,
+        url,
+        chunk_no,
+        chunk_text
+    FROM web_chunks
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+    return rows

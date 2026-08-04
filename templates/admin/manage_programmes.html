@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Manage Programmes</title>
+
+</head>
+
+<body>
+
+<h1>Academic Programmes</h1>
+
+<form action="/admin/programmes/add" method="POST">
+
+<input name="programme_name" placeholder="Programme Name" required><br><br>
+
+<input name="programme_level" placeholder="Programme Level"><br><br>
+
+<input name="college" placeholder="College"><br><br>
+
+<input name="department" placeholder="Department"><br><br>
+
+<input name="duration" placeholder="Duration"><br><br>
+
+<input name="eligibility" placeholder="Eligibility"><br><br>
+
+<input name="intake" placeholder="Intake"><br><br>
+
+<input
+name="source"
+value="Official Prospectus"><br><br>
+
+<input
+name="url"
+placeholder="URL"><br><br>
+
+<input
+name="last_updated"
+value="2026-07-25"><br><br>
+
+<button>Add Programme</button>
+
+</form>
+
+<hr>
+
+<table border="1">
+
+<tr>
+
+<th>ID</th>
+<th>Programme</th>
+<th>Level</th>
+<th>College</th>
+<th>Department</th>
+<th>Duration</th>
+<th>Action</th>
+
+</tr>
+
+{% for p in programmes %}
+
+<tr>
+
+<td>{{ p[0] }}</td>
+
+<td>{{ p[1] }}</td>
+
+<td>{{ p[2] }}</td>
+
+<td>{{ p[3] }}</td>
+
+<td>{{ p[4] }}</td>
+
+<td>{{ p[5] }}</td>
+
+<td>
+    <a href="/admin/programmes/delete/{{ p[0] }}"
+       onclick="return confirm('Delete this programme?')">
+       Delete
+    </a>
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+
+</html>

@@ -65,9 +65,48 @@ def create_tables():
             timestamp TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # cursor.execute("""
+    #     CREATE TABLE IF NOT EXISTS academic_programmes(
+    #         programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #         programme_name TEXT NOT NULL,
+    #         programme_level TEXT,
+    #         college TEXT,
+    #         department TEXT,
+    #         duration TEXT,
+    #         eligibility TEXT,
+    #         intake TEXT,
+    #         source TEXT,
+    #         url TEXT,
+    #         last_updated TEXT
+    #   )
+    # """)
+
+        # Stores academic programmes
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS academic_programmes(
+            programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            programme_name TEXT NOT NULL,
+            programme_level TEXT,
+            college TEXT,
+            department TEXT,
+            duration TEXT,
+            eligibility TEXT,
+            intake TEXT,
+            source TEXT,
+            overview TEXT,
+            url TEXT,
+            last_updated TEXT,
+            fee TEXT,
+            admission_process TEXT,
+            selection_process TEXT,
+            prospectus_page TEXT
+        )
+    """)
 
     conn.commit()
     conn.close()
+
+    
 
 def add_topic(topic_name, category, description):
     conn = get_connection()
@@ -187,3 +226,155 @@ def get_search_records():
     records = cursor.fetchall()
     conn.close()
     return records
+
+
+def get_programmes():
+
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM academic_programmes
+        ORDER BY programme_name
+    """)
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+
+def add_programme(
+    programme_name,
+    programme_level,
+    college,
+    department,
+    duration,
+    eligibility,
+    intake,
+    source,
+    url,
+    last_updated
+):
+
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO academic_programmes(
+            programme_name,
+            programme_level,
+            college,
+            department,
+            duration,
+            eligibility,
+            intake,
+            source,
+            url,
+            last_updated
+        )
+
+        VALUES(?,?,?,?,?,?,?,?,?,?)
+    """,(
+        programme_name,
+        programme_level,
+        college,
+        department,
+        duration,
+        eligibility,
+        intake,
+        source,
+        url,
+        last_updated
+    ))
+
+    conn.commit()
+    conn.close()
+
+def delete_programme(programme_id):
+
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM academic_programmes
+        WHERE programme_id=?
+    """, (programme_id,))
+
+    conn.commit()
+    conn.close()
+
+def get_programme(programme_id):
+
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM academic_programmes
+        WHERE programme_id=?
+    """,(programme_id,))
+
+    programme=cursor.fetchone()
+
+    conn.close()
+
+    return programme
+
+
+def update_programme(
+    programme_id,
+    programme_name,
+    programme_level,
+    college,
+    department,
+    duration,
+    eligibility,
+    intake,
+    source,
+    url,
+    last_updated
+):
+
+    conn=sqlite3.connect(DATABASE_NAME)
+    cursor=conn.cursor()
+
+    cursor.execute("""
+
+    UPDATE academic_programmes
+
+    SET
+
+    programme_name=?,
+    programme_level=?,
+    college=?,
+    department=?,
+    duration=?,
+    eligibility=?,
+    intake=?,
+    source=?,
+    url=?,
+    last_updated=?
+
+    WHERE programme_id=?
+
+    """,(
+
+        programme_name,
+        programme_level,
+        college,
+        department,
+        duration,
+        eligibility,
+        intake,
+        source,
+        url,
+        last_updated,
+        programme_id
+
+    ))
+
+    conn.commit()
+    conn.close()

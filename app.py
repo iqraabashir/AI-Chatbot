@@ -1,9 +1,12 @@
 from flask import Flask, jsonify, render_template, request
 from chatbot.intents import get_response
 
-# from Ai_chatbot.chatbot.intents import get_response
+
 
 app = Flask(__name__)
+app.secret_key = "cluster_university_secret_key"
+from admin import admin
+app.register_blueprint(admin)
 
 @app.route("/")
 def home():

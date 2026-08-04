@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='admin/admin.css') }}">
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>CUS AI Admin</h2>
+
+<a href="#">Dashboard</a>
+
+<a href="/admin/programmes">Academic Programmes</a>
+
+<a href="#">Admissions</a>
+
+<a href="#">Notifications</a>
+
+<a href="#">Colleges</a>
+
+<a href="#">Library</a>
+
+<a href="#">Scholarships</a>
+
+<a href="#">Student Services</a>
+
+<a href="/admin/logout">Logout</a>
+
+</div>
+
+<div class="content">
+
+<h1>Dashboard</h1>
+
+<div class="cards">
+
+<div class="card">
+<h2>Academic Programmes</h2>
+<p>Manage Courses</p>
+</div>
+
+<div class="card">
+<h2>Admissions</h2>
+<p>Manage Admission Information</p>
+</div>
+
+<div class="card">
+<h2>Notifications</h2>
+<p>Latest Notices</p>
+</div>
+
+<div class="card">
+<h2>Library</h2>
+<p>Manage Library Information</p>
+</div>
+
+<div class="card">
+<h2>Scholarships</h2>
+<p>Manage Scholarships</p>
+</div>
+
+<div class="card">
+<h2>Student Services</h2>
+<p>Manage Student Services</p>
+</div>
+
+</div>
+
+</div>
+
+</body>
+
+</html>
