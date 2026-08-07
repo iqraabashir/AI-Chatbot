@@ -6,7 +6,6 @@ DATABASE_NAME = "chatbot/knowledge.db"
 def get_connection():
     return sqlite3.connect(DATABASE_NAME)
 
-
 def create_tables():
     conn = get_connection()
     cursor = conn.cursor()
@@ -82,25 +81,77 @@ def create_tables():
     # """)
 
         # Stores academic programmes
+    # cursor.execute("""
+    #     CREATE TABLE IF NOT EXISTS academic_programmes(
+    #         programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    #         programme_name TEXT NOT NULL,
+    #         programme_level TEXT,
+    #         college TEXT,
+    #         department TEXT,
+    #         duration TEXT,
+    #         eligibility TEXT,
+    #         intake TEXT,
+    #         source TEXT,
+    #         overview TEXT,
+    #         url TEXT,
+    #         last_updated TEXT,
+    #         fee TEXT,
+    #         admission_process TEXT,
+    #         selection_process TEXT,
+    #         prospectus_page TEXT
+    #     )
+    # """)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS academic_programmes(
-            programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            programme_name TEXT NOT NULL,
-            programme_level TEXT,
-            college TEXT,
-            department TEXT,
-            duration TEXT,
-            eligibility TEXT,
-            intake TEXT,
-            source TEXT,
-            overview TEXT,
-            url TEXT,
-            last_updated TEXT,
-            fee TEXT,
-            admission_process TEXT,
-            selection_process TEXT,
-            prospectus_page TEXT
-        )
+        CREATE TABLE IF NOT EXISTS academic_programmes (
+
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           programme TEXT NOT NULL,
+           specialization TEXT,
+           level TEXT,
+           college TEXT,
+           department TEXT,
+           duration TEXT,
+           programme_type TEXT,
+           school TEXT,
+           campus TEXT,
+           eligibility TEXT,
+           intake TEXT,
+           fee TEXT,
+           admission_process TEXT,
+           selection_process TEXT,
+           overview TEXT,
+           source TEXT,
+           url TEXT,
+           last_updated TEXT
+       )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS college_master (
+           college_id INTEGER PRIMARY KEY AUTOINCREMENT,
+           college_name TEXT NOT NULL,
+           short_name TEXT,
+           university TEXT,
+           established TEXT,
+           type TEXT,
+           campus TEXT,
+           address TEXT,
+           district TEXT,
+           state TEXT,
+           principal TEXT,
+           overview TEXT,
+           departments TEXT,
+           programmes_offered TEXT,
+           library TEXT,
+           hostel TEXT,
+           laboratories TEXT,
+           sports TEXT,
+           ncc TEXT,
+           nss TEXT,
+           facilities TEXT,
+           website TEXT,
+           google_maps TEXT,
+           official_email TEXT
+           )
     """)
 
     conn.commit()
