@@ -1,18 +1,14 @@
 import sqlite3
 from difflib import SequenceMatcher
 
-
-
 DATABASE_NAME = "chatbot/faq.db"
 # DATABASE = "chatbot.db"
 DATABASE = DATABASE_NAME
 
-
 def get_connection():
-  
     connection = sqlite3.connect(DATABASE_NAME)
-
     return connection
+
 def create_tables():
     conn = get_connection()
     cursor = conn.cursor()

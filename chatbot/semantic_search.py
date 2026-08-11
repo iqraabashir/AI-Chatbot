@@ -45,38 +45,3 @@ def find_best_topic(user_question):
             best_topic = (topic_id, topic_name)
 
     return best_topic, highest_score
-
-# def find_related_topics(user_question, threshold=0.30):
-
-#     from chatbot.knowledge_database import get_all_topics
-
-#     query_embedding = model.encode(
-#         user_question,
-#         convert_to_tensor=True
-#     )
-
-#     topics = get_all_topics()
-
-#     related_topics = []
-
-#     for topic in topics:
-
-#         topic_embedding = model.encode(
-#             topic[1],
-#             convert_to_tensor=True
-#         )
-
-#         score = util.cos_sim(
-#             query_embedding,
-#             topic_embedding
-#         ).item()
-
-#         if score >= threshold:
-#             related_topics.append((topic, score))
-
-#     related_topics.sort(
-#         key=lambda x: x[1],
-#         reverse=True
-#     )
-
-#     return related_topics

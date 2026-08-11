@@ -12,7 +12,7 @@ def detect_query_type(question):
     # Integrated
       "integrated","integrated msc","integrated ma",
       "integrated mba","integrated mca","msc","chemistry",
-      "bed","med",
+      "bed","b.ed","med","m.ed",
 
     # PG
       "ma","msc","mcom","mba","mca",
@@ -48,7 +48,9 @@ def detect_query_type(question):
       "statistics",
       "biotechnology",
       "biochemistry",
-      "environmental science"
+      "environmental science",
+      "urdu",
+      "education"
     ]
 
     pdf_keywords = [

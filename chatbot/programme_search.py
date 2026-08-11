@@ -1,330 +1,457 @@
 import sqlite3
 import re
-from chatbot.aliases import COLLEGE_ALIASES, PROGRAMME_ALIASES
 
-from matplotlib.pylab import long
+from chatbot.aliases import COLLEGE_ALIASES, PROGRAMME_ALIASES
 
 LAST_PROGRAMME = None
 DATABASE_NAME = "chatbot/knowledge.db"
-
 
 def get_connection():
     conn = sqlite3.connect(DATABASE_NAME)
     conn.row_factory = sqlite3.Row
     return conn
 
-# def search_programmes(user_question):
-#     conn = sqlite3.connect(DATABASE_NAME)
-#     conn.row_factory = sqlite3.Row
-#     cursor = conn.cursor()
-#     cursor.execute("SELECT * FROM academic_programmes")
-#     programmes = cursor.fetchall()
-#     conn.close()
-#     question = user_question.lower()
+def normalize_question(text):
+    text = (text or "").lower().strip()
+    # new bed
+    text = re.sub(r"\bb\s*\.?\s*\.?\s*e\s*\.?\s*d\b", "bed", text)
+    text = re.sub(r"\bm\s*\.?\s*\.?\s*e\s*\.?\s*d\b", "med", text)
+    text = re.sub(r"[^a-z0-9\s&-]", " ", text)
+    for short, full in sorted(
+        COLLEGE_ALIASES.items(),
+        key=lambda x: len(x[0]),
+        reverse=True
+    ):
+        text = re.sub(
+            rf"\b{re.escape(short.lower())}\b",
+            full.lower(),
+            text
+        )
 
-#     question_words = set(question.split())
-#     question = " "+question+" "
-#     for short,full in COLLEGE_ALIASES.items():
-#         question = question.replace(f"{short}", f"{full}")
-#     for short,full in PROGRAMME_ALIASES.items():
-#         question = question.replace(f"{short}", f"{full}")
-#     question = (question.strip())
-#     best_match = None
-#     best_score = -1
-#     for programme in programmes:
-#         score = 0
+    for short, full in sorted(
+        PROGRAMME_ALIASES.items(),
+        key=lambda x: len(x[0]),
+        reverse=True
+    ):
+        text = re.sub(
+            rf"\b{re.escape(short.lower())}\b",
+            full.lower(),
+            text
+        )
 
-#         print("...............")
-#         print(name := programme["programme"])
+    replacements = {
+        "bachelor of computer applications": "bca",
+        "master of science": "msc",
+        "master of arts": "ma",
+        "master of computer applications": "mca",
+        "master of business administration": "mba",
+        "master of commerce": "mcom",
+        "master of education": "med",
+        "bachelor of science": "bsc",
+        "bachelor of arts": "ba",
+        "bachelor of commerce": "bcom",
+        "bachelor of business administration": "bba",
+        "bachelor of education": "bed",
+    }
 
-#         programme_name = (programme["programme"] or "").lower().strip()
-#         specialization = (programme["specialization"] or "").lower().strip()
-#         college = (programme["college"] or "").lower().strip()
-#         department = (programme["department"] or "").lower().strip()
-#         level = (programme["level"] or "").lower().strip()
-#         full_name = f"{programme_name} {specialization}".strip()
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    return re.sub(r"\s+", " ", text).strip()
 
-#         #Exact full programme
-#         if full_name in question:
-#             score += 100
+def get_words(text):
+    return set(
+        re.findall(
+            r"[a-z0-9]+(?:-[a-z0-9]+)*",
+            text.lower()
+        )
+    )
 
-#         #Programme 
-#         if programme_name in question_words:
-#             score += 60
+UG = {
+    "ba",
+    "bsc",
+    "bca",
+    "bba",
+    "bcom",
+    "bed"
+}
 
-#         #Specialization
-#         if specialization and specialization in question:
-#             score += 40
+PG = {
+    "ma",
+    "msc",
+    "mca",
+    "mba",
+    "mcom",
+    "med"
+}
 
-#         #College
-#         if college and college in question:
-#             score += 20
-
-#         #Department
-#         if department and department in question:
-#             score += 15
-
-#         #Level
-#         question_words = set(question.split())
-
-#         UG = {"ba", "bsc", "bca", "bba", "bcom"}
-#         PG = {"ma", "msc", "mca", "mba", "mcom"}
-
-#         if "integrated" in question_words:
-#          if level == "integrated":
-#           score += 20
-
-#         elif question_words & PG:
-#          if level == "pg":
-#           score += 20
-
-#         elif question_words & UG:
-#          if level == "ug":
-#           score += 20
-
-#         #Individual words
-#         for word in full_name.split():
-#             if len(word) > 2 and word in question:
-#                 score += 5
-
-#         print(score)       
-#         if score > best_score:
-#             best_score = score
-#             best_match = programme
-#     global LAST_PROGRAMME
-#     if best_match:
-#         LAST_PROGRAMME = best_match
-#     return best_match
-def search_programmes(user_question):
-
-    conn = sqlite3.connect(DATABASE_NAME)
-    conn.row_factory = sqlite3.Row
+def get_all_programmes():
+    conn = get_connection()
     cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM academic_programmes")
+    cursor.execute(
+        "SELECT * FROM academic_programmes"
+    )
     programmes = cursor.fetchall()
-
     conn.close()
+    return programmes
 
-    from chatbot.aliases import COLLEGE_ALIASES, PROGRAMME_ALIASES
+def make_unique(programmes):
+    unique = []
+    seen = set()
 
-    question = " " + user_question.lower() + " "
+    for p in programmes:
+        key = (
+            (p["programme"] or "").strip().lower(),
+            (p["specialization"] or "").strip().lower(),
+            (p["level"] or "").strip().lower(),
+            (p["college"] or "").strip().lower(),
+            (p["department"] or "").strip().lower()
+        )
+        if key not in seen:
+            seen.add(key)
+            unique.append(p)
+    return unique
 
-    # Expand aliases
-    for short, full in COLLEGE_ALIASES.items():
-        question = question.replace(f" {short} ", f" {full} ")
+# new
+def normalize_programme_name(text):
+    text = normalize_question(text)
+    # Remove punctuation/spacing differences in degree names
+    text = re.sub(r"\bba\s+bed\b", "ba bed", text)
+    text = re.sub(r"\bbsc\s+bed\b", "bsc bed", text)
+    return re.sub(r"\s+", " ", text).strip()
 
-    for short, full in PROGRAMME_ALIASES.items():
-        question = question.replace(f" {short} ", f" {full} ")
-
-    question = question.strip()
-    question_words = set(question.split())
-
-    UG = {"ba", "bsc", "bca", "bba", "bcom", "bed"}
-    PG = {"ma", "msc", "mca", "mba", "mcom", "med"}
-
+def search_programmes(user_question):
+    global LAST_PROGRAMME
+    question = normalize_question(user_question)
+  
+    words = get_words(question)
+    programmes = get_all_programmes()
     best_match = None
     best_score = -1
+    for p in programmes:
+        programme_name = (
+            p["programme"] or ""
+        ).lower().strip()
+        # new
+        normalized_programme = normalize_programme_name(programme_name)
 
-    for programme in programmes:
+        specialization = (
+            p["specialization"] or ""
+        ).lower().strip()
+
+        college = (
+            p["college"] or ""
+        ).lower().strip()
+
+        department = (
+            p["department"] or ""
+        ).lower().strip()
+
+        school = (
+            p["school"] or ""
+        ).lower().strip()
+
+        level = (
+            p["level"] or ""
+        ).lower().strip()
+        # new 
+        if "bed" in words:
+          if "bed" not in programme_name.replace(".", "").replace(" ", ""):
+           continue
+
         score = 0
 
-        programme_name = (programme["programme"] or "").lower().strip()
-        specialization = (programme["specialization"] or "").lower().strip()
-        college = (programme["college"] or "").lower().strip()
-        department = (programme["department"] or "").lower().strip()
-        school = (programme["school"] or "").lower().strip()
-        level = (programme["level"] or "").lower().strip()
-        full_name = f"{programme_name} {specialization}".strip()
-
-        # Exact full programme
-        if full_name and full_name in question:
-            score += 100
-
-        # Programme Name
-        if programme_name in question_words:
-            score += 60
-
-        # Specialization
-        if specialization and specialization in question:
-            score += 45
-
-        # College
-        if college and college in question:
-            score += 25
-
-        # Department
-        if department and department in question:
-            score += 20
-
-        # School
-        if school and school in question:
-            score += 15
-
-        #Level Matching
-        if "integrated" in question_words:
-            if level == "integrated":
-                score += 40
+        # new 3
+        if normalized_programme in question:
+         score += 3000
+        if (
+           "integrated" in words
+           and "ba" in words
+           and "bed" in words
+        ):
+            if (
+                level == "integrated"
+                and "ba" in normalized_programme
+                and "bed" in normalized_programme
+            ):
+                score += 5000
             else:
-                score -= 100
-        elif question_words & PG:
-            if level == "pg":
-                score += 30
+                score -= 1000
+        if (
+            "integrated" in words
+            and "bsc" in words
+            and "bed" in words
+        ):
+            if (
+                level == "integrated"
+                and "bsc" in normalized_programme
+                and "bed" in normalized_programme
+            ):
+                score += 5000
             else:
-                score -= 40
-        elif question_words & UG:
-            if level == "ug":
-                score += 30
-            else:
-                score -= 40
+                score -= 1000
+        if programme_name in words:
+            score += 1000
 
-        # Individual words
-        for word in full_name.split():
-            if len(word) < 3:
-                continue
-            if word in question_words:
-                score += 6
+        # if programme_name in words:
+        #     score += 1000
+            # new added upar ib
+            # score += 100
 
         if specialization:
-            spec_words = specialization.split()
-            if all(word in question_words for word in spec_words):
-                score += 20
+            spec_words = get_words(specialization)
+            score += len(
+                spec_words.intersection(words)
+            ) * 50
+
+        if department:
+            dept_words = get_words(department)
+            score += len(
+                dept_words.intersection(words)
+            ) * 20
+
+        if college and college in question:
+            score += 50
+
+        if school and school in question:
+            score += 20
+
+        if level == "pg" and words.intersection(PG):
+            score += 80
+
+        if level == "ug" and words.intersection(UG):
+            score += 80
+
+        if "integrated" in words:
+            if level == "integrated":
+                score += 100
+            else:
+                score -= 100
 
         if score > best_score:
             best_score = score
-            best_match = programme
+            best_match = p
 
-    global LAST_PROGRAMME
+    # if best_match:
+    #     LAST_PROGRAMME = best_match
+    # return best_match
 
-    if best_match:
+    # new added ib
+    if best_match and best_score > 0:
         LAST_PROGRAMME = best_match
+        return best_match
+    return None
 
-    return best_match
+
+def search_programme_list(question):
+
+    question = normalize_question(question)
+    typo_replacements = {
+        "programmemes": "programmes",
+        "programmee": "programme",
+        "programm": "programme",
+        "programs": "programmes"
+    }
+    for old, new in typo_replacements.items():
+        question = re.sub( rf"\b{re.escape(old)}\b", new,question)
+
+    print("------------------------------------------------")
+    print("LIST SEARCH QUESTION:", question)
+
+    requested_level = None
+
+    if re.search(r"\bintegrated\b", question):
+        requested_level = "integrated"
+
+    elif re.search(
+        r"\b(pg|postgraduate|post graduate)\b",
+        question
+    ):
+        requested_level = "pg"
+
+    elif re.search(
+        r"\b(ug|undergraduate|under graduate)\b",
+        question
+    ):
+        requested_level = "ug"
+
+    print("REQUESTED LEVEL:", requested_level)
+
+    ignore_words = {
+        "list",
+        "show",
+        "display",
+        "available",
+        "offer",
+        "offers",
+        "offered",
+        "provide",
+        "provides",
+        "which",
+        "college",
+        "colleges",
+        "programme",
+        "programmes",
+        "programmemes",
+        "program",
+        "programs",
+        "course",
+        "courses",
+        "all",
+        "can",
+        "study",
+        "where",
+        "to",
+        "in",
+        "for",
+        "the",
+        "of",
+        "are",
+        "is",
+        "what",
+        "does",
+        "do",
+        "me",
+        "i",
+        "my",
+        "pg",
+        "ug",
+        "postgraduate",
+        "post",
+        "graduate",
+        "undergraduate",
+        "under",
+        "integrated"
+    }
+
+    keywords = [
+        word
+        for word in re.findall(
+            r"[a-z0-9]+(?:-[a-z0-9]+)*",
+            question
+        )
+        if word not in ignore_words
+    ]
+
+    keywords = list(dict.fromkeys(keywords))
+
+    print("LIST KEYWORDS:", keywords)
+
+    programmes = get_all_programmes()
+
+    results = []
+
+    for p in programmes:
+
+        level = (
+            p["level"] or ""
+        ).lower().strip()
+
+        if requested_level and level != requested_level:
+            continue
+
+        programme_name = (
+            p["programme"] or ""
+        ).lower().strip()
+
+        specialization = (
+            p["specialization"] or ""
+        ).lower().strip()
+
+        department = (
+            p["department"] or ""
+        ).lower().strip()
+
+        college = (
+            p["college"] or ""
+        ).lower().strip()
+
+        school = (
+            p["school"] or ""
+        ).lower().strip()
+
+        programme_words = get_words(programme_name)
+        specialization_words = get_words(specialization)
+        department_words = get_words(department)
+        college_words = get_words(college)
+        school_words = get_words(school)
+
+        search_words = (
+            programme_words
+            | specialization_words
+            | department_words
+            | college_words
+            | school_words
+        )
+
+        if not keywords:
+            results.append(p)
+            continue
+
+        matched = True
+
+        for keyword in keywords:
+
+            if keyword == "information":
+                if (
+                    "information" not in programme_name
+                    and "information" not in specialization
+                    and "information" not in department
+                ):
+                    matched = False
+                    break
+
+            elif keyword == "technology":
+                if (
+                    "technology" not in programme_name
+                    and "technology" not in specialization
+                    and "technology" not in department
+                ):
+                    matched = False
+                    break
+
+            elif keyword not in search_words:
+                matched = False
+                break
+
+        if matched:
+            results.append(p)
+
+    results = make_unique(results)
+
+    level_order = {
+        "ug": 1,
+        "integrated": 2,
+        "pg": 3
+    }
+
+    results.sort(
+        key=lambda x: (
+            level_order.get(
+                (x["level"] or "").lower(),
+                99
+            ),
+            (x["programme"] or "").lower(),
+            (x["specialization"] or "").lower(),
+            (x["college"] or "").lower()
+        )
+    )
+
+    print("FINAL RESULTS:", len(results))
+
+    for p in results:
+        print(
+            "RESULT:",
+            p["programme"],
+            "|",
+            p["specialization"],
+            "|",
+            p["level"],
+            "|",
+            p["college"]
+        )
+
+    return results
 
 
 def get_last_programme():
     return LAST_PROGRAMME
-
-def search_programme_list(question):
-    question = question.lower()
-    
-    question = " "+question+" "
-    for short,full in COLLEGE_ALIASES.items():
-        question = question.replace(f"{short}", f"{full}")
-
-    for short,full in PROGRAMME_ALIASES.items():
-        question = question.replace(f"{short}", f"{full}")
-    question = question.strip()
-
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM academic_programmes")
-    programmes = cursor.fetchall()
-    conn.close()
-
-    results = []
-
-    for programme in programmes:
-        programme_name = (programme["programme"] or "").lower()
-        specialization = (programme["specialization"] or "").lower()
-        department = (programme["department"] or "").lower()
-        college = (programme["college"] or "").lower()
-        school = (programme["school"] or "").lower()
-        level = (programme["level"] or "").lower()
-        if "integrated" in question:
-            if programme_name != "integrated msc" and level != "integrated":
-                continue
-        elif "msc" in question:
-            if programme_name != "msc":
-                continue
-        elif "ma" in question:
-            if programme_name != "ma":
-                continue
-        elif "mca" in question:
-            if programme_name != "mca":
-                continue
-        elif "mba" in question:
-            if programme_name != "mba":
-                continue
-        elif "bsc" in question:
-            if programme_name != "bsc":
-                continue
-        elif "ba" in question:
-            if programme_name != "ba":
-                continue
-        elif "bba" in question:
-            if programme_name != "bba":
-                continue
-        elif "bcom" in question:
-            if programme_name != "bcom":
-                continue
-        
-        programme_type = (programme["programme_type"] or "").lower()
-
-        search_text = " ".join([
-            programme_name,
-            specialization,
-            department,
-            college,
-            school,
-            level,
-            programme_type
-        ]).lower()
-        search_words = set(search_text.split())
-
-        keywords = [
-         w.lower() for w in re.findall(r"[a-zA-Z0-9]+", question)
-         if len(w) > 2 and w.lower() not in {
-           "list",
-           "show",
-           "display",
-           "available",
-           "offer",
-           "offers",
-           "offered",
-           "provide",
-           "provides",
-           "which",
-           "college",
-           "colleges",
-           "programme",
-           "programmes",
-           "program",
-           "programs",
-           "course",
-           "courses",
-           "all",
-           "can",
-           "i",
-           "study",
-           "where",
-           "to",
-           "in",
-           "for",
-           "the",
-           "of"
-        }
-    ]
-        score = 0
-        for word in keywords:
-            if word in search_words:
-                score += 1
-        matched = score == len(keywords)
-        if "physics" in question:
-            print("---------")
-            print(search_text)
-            print(keywords)
-            print(score)
-            print(matched)
-
-        if matched:
-          results.append(programme)
-
-    results.sort(
-        key=lambda x: (
-            x["programme"] or "",
-            x["specialization"] or "",
-            x["college"] or ""
-        )
-    )
-    return results

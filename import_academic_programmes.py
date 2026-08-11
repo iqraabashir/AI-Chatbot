@@ -1,7 +1,7 @@
 from openpyxl import load_workbook
 from chatbot.knowledge_database import add_topic, add_field, add_value
 
-workbook = load_workbook("data/official_data/knowledge/academic_programmes.xlsx")
+workbook = load_workbook("data/official_data/knowledge/programme_master.xlsx")
 sheet = workbook.active
 
 topics = {}

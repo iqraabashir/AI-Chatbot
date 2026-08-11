@@ -64,43 +64,7 @@ def create_tables():
             timestamp TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # cursor.execute("""
-    #     CREATE TABLE IF NOT EXISTS academic_programmes(
-    #         programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #         programme_name TEXT NOT NULL,
-    #         programme_level TEXT,
-    #         college TEXT,
-    #         department TEXT,
-    #         duration TEXT,
-    #         eligibility TEXT,
-    #         intake TEXT,
-    #         source TEXT,
-    #         url TEXT,
-    #         last_updated TEXT
-    #   )
-    # """)
-
-        # Stores academic programmes
-    # cursor.execute("""
-    #     CREATE TABLE IF NOT EXISTS academic_programmes(
-    #         programme_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    #         programme_name TEXT NOT NULL,
-    #         programme_level TEXT,
-    #         college TEXT,
-    #         department TEXT,
-    #         duration TEXT,
-    #         eligibility TEXT,
-    #         intake TEXT,
-    #         source TEXT,
-    #         overview TEXT,
-    #         url TEXT,
-    #         last_updated TEXT,
-    #         fee TEXT,
-    #         admission_process TEXT,
-    #         selection_process TEXT,
-    #         prospectus_page TEXT
-    #     )
-    # """)
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS academic_programmes (
 
@@ -120,6 +84,7 @@ def create_tables():
            admission_process TEXT,
            selection_process TEXT,
            overview TEXT,
+           subject_overview TEXT,
            source TEXT,
            url TEXT,
            last_updated TEXT
