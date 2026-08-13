@@ -91,6 +91,7 @@ def create_tables():
        )
     """)
     cursor.execute("""
+
         CREATE TABLE IF NOT EXISTS college_master (
            college_id INTEGER PRIMARY KEY AUTOINCREMENT,
            college_name TEXT NOT NULL,
@@ -116,6 +117,18 @@ def create_tables():
            website TEXT,
            google_maps TEXT,
            official_email TEXT
+           )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS university_info (
+           university_info_id INTEGER PRIMARY KEY AUTOINCREMENT,
+           intent TEXT,
+           topic TEXT,
+           field TEXT,
+           value TEXT,
+           source TEXT,
+           url TEXT,
+           email TEXT
            )
     """)
 

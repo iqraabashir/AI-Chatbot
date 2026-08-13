@@ -94,6 +94,88 @@ def get_all_programmes():
     conn.close()
     return programmes
 
+def search_subject_overview(subject):
+    subject = normalize_question(subject).strip()
+
+    if subject == "it":
+        subject = "information technology"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM academic_programmes
+        WHERE LOWER(TRIM(specialization)) = ?
+           OR LOWER(TRIM(department)) = ?
+        ORDER BY id
+        LIMIT 1
+    """, (
+        subject.lower(),
+        subject.lower()
+    ))
+
+    programme = cursor.fetchone()
+    conn.close()
+
+    if programme is None:
+        return None
+
+    overview = (
+        programme["subject_overview"] or ""
+    ).strip()
+
+    if not overview:
+        return None
+
+    return {
+        "subject": subject,
+        "overview": overview
+    }
+
+def search_all_matching_programmes(user_question):
+    question = normalize_question(user_question)
+    words = get_words(question)
+    programmes = get_all_programmes()
+    matches = []
+    for p in programmes:
+        programme_name = normalize_programme_name(
+            p["programme"] or ""
+        )
+        specialization = normalize_question(
+            p["specialization"] or ""
+        )
+        department = normalize_question(
+            p["department"] or ""
+        )
+        full_name = (
+            f"{programme_name} {specialization}"
+        ).strip()
+
+        # Exact programme + specialization match
+        if full_name and full_name in question:
+            matches.append(p)
+            continue
+
+        # Programme abbreviation/name match
+        if programme_name in words:
+            if not specialization or specialization in question:
+                matches.append(p)
+                continue
+
+        # Specialization match
+        if specialization and specialization in words:
+            if programme_name in words:
+                matches.append(p)
+                continue
+
+        # Department match
+        if department and department in words:
+            if programme_name in words:
+                matches.append(p)
+
+    return make_unique(matches)
+
 def make_unique(programmes):
     unique = []
     seen = set()
@@ -122,80 +204,214 @@ def normalize_programme_name(text):
 def search_programmes(user_question):
     global LAST_PROGRAMME
     question = normalize_question(user_question)
-  
+    # all_matches = search_all_matching_programmes(question)
+    # if all_matches:
+    #     return all_matches[0]
+
     words = get_words(question)
     programmes = get_all_programmes()
     best_match = None
     best_score = -1
     for p in programmes:
+        programme_name = normalize_programme_name(
+            p["programme"] or ""
+        )
+        # ) .lower().strip()
+        # new
+        # normalized_programme = normalize_programme_name(programme_name)
+
+        specialization = normalize_question(
+            p["specialization"] or ""
+        )
+        # ) .lower().strip()
+
+        college = normalize_question(
+            p["college"] or ""
+        )
+
+        department =  normalize_question(
+           p["department"] or ""
+        )
+        # .lower().strip() 
+
+        # school = (
+        #     p["school"] or ""
+        # ).lower().strip()
+
+        level = normalize_question (
+            p["level"] or ""
+        )
+        # .lower().strip()
+
+        score = 0
+        if programme_name == question:
+            score += 10000
+        full_name = (
+            f"{programme_name} {specialization}"
+        ).strip()
+        if full_name == question:
+            score += 9000
+
+        if programme_name and programme_name in words:
+            score += 5000
+
+        if specialization:
+            spec_words = get_words(specialization)
+
+            if spec_words.issubset(words):
+                score += 4000
+            else:
+                score += (
+                    len(spec_words.intersection(words)) * 500
+                )
+
+        if department:
+            dept_words = get_words(department)
+
+            if dept_words.issubset(words):
+                score += 1000
+        if college and college in question:
+            score += 1000
+        if level == "ug" and words.intersection(UG):
+            score += 500
+
+        if level == "pg" and words.intersection(PG):
+            score += 500
+
+        if level == "integrated" and "integrated" in words:
+            score += 500
+        if score > best_score:
+            best_score = score
+            best_match = p
+
+    if best_match and best_score > 0:
+        LAST_PROGRAMME = best_match
+        print(
+            "BEST PROGRAMME:",
+            best_match["programme"],
+            "|",
+            best_match["specialization"],
+            "|",
+            best_match["level"],
+            "|",
+            best_match["college"],
+            "| SCORE:",
+            best_score
+        )
+        return best_match
+    return None
+            
+
+        # new 3
+        # if normalized_programme in question:
+        #  score += 3000
+        # if (
+        #    "integrated" in words
+        #    and "ba" in words
+        #    and "bed" in words
+        # ):
+        #     if (
+        #         level == "integrated"
+        #         and "ba" in normalized_programme
+        #         and "bed" in normalized_programme
+        #     ):
+        #         score += 5000
+        #     else:
+        #         score -= 1000
+        # if (
+        #     "integrated" in words
+        #     and "bsc" in words
+        #     and "bed" in words
+        # ):
+        #     if (
+        #         level == "integrated"
+        #         and "bsc" in normalized_programme
+        #         and "bed" in normalized_programme
+        #     ):
+        #         score += 5000
+        #     else:
+        #         score -= 1000
+        # if normalized_programme == question:
+        #     score += 10000
+        # elif normalized_programme in question:
+        #     score += 3000
+        # elif programme_name in words:
+        #     score += 1000
+
+        # if specialization:
+        #     spec_words = get_words(specialization)
+        #     score += len(
+        #         spec_words.intersection(words)
+        #     ) * 50
+
+        # if department:
+        #     dept_words = get_words(department)
+        #     score += len(
+        #         dept_words.intersection(words)
+        #     ) * 20
+
+        # if college and college in question:
+        #     score += 50
+
+        # if school and school in question:
+        #     score += 20
+
+        # if level == "pg" and words.intersection(PG):
+        #     score += 80
+
+        # if level == "ug" and words.intersection(UG):
+        #     score += 80
+
+        # if "integrated" in words:
+        #     if level == "integrated":
+        #         score += 100
+        #     else:
+        #         score -= 100
+
+        # if score > best_score:
+        #     best_score = score
+        #     best_match = p
+
+    # if best_match:
+    #     LAST_PROGRAMME = best_match
+    # return best_match
+
+    # new added ib
+    # if best_match and best_score > 0:
+    #     LAST_PROGRAMME = best_match
+    #     return best_match
+    # return None
+
+def search_all_matching_programmes(user_question):
+    question = normalize_question(user_question)
+    words = get_words(question)
+    programmes = get_all_programmes()
+    matches = []
+    for p in programmes:
         programme_name = (
             p["programme"] or ""
         ).lower().strip()
-        # new
-        normalized_programme = normalize_programme_name(programme_name)
 
         specialization = (
             p["specialization"] or ""
-        ).lower().strip()
-
-        college = (
-            p["college"] or ""
         ).lower().strip()
 
         department = (
             p["department"] or ""
         ).lower().strip()
 
-        school = (
-            p["school"] or ""
-        ).lower().strip()
-
         level = (
             p["level"] or ""
         ).lower().strip()
-        # new 
-        if "bed" in words:
-          if "bed" not in programme_name.replace(".", "").replace(" ", ""):
-           continue
+
+        normalized_programme = (
+            normalize_programme_name(programme_name)
+        )
 
         score = 0
 
-        # new 3
         if normalized_programme in question:
-         score += 3000
-        if (
-           "integrated" in words
-           and "ba" in words
-           and "bed" in words
-        ):
-            if (
-                level == "integrated"
-                and "ba" in normalized_programme
-                and "bed" in normalized_programme
-            ):
-                score += 5000
-            else:
-                score -= 1000
-        if (
-            "integrated" in words
-            and "bsc" in words
-            and "bed" in words
-        ):
-            if (
-                level == "integrated"
-                and "bsc" in normalized_programme
-                and "bed" in normalized_programme
-            ):
-                score += 5000
-            else:
-                score -= 1000
-        if programme_name in words:
-            score += 1000
-
-        # if programme_name in words:
-        #     score += 1000
-            # new added upar ib
-            # score += 100
+            score += 3000
 
         if specialization:
             spec_words = get_words(specialization)
@@ -209,12 +425,6 @@ def search_programmes(user_question):
                 dept_words.intersection(words)
             ) * 20
 
-        if college and college in question:
-            score += 50
-
-        if school and school in question:
-            score += 20
-
         if level == "pg" and words.intersection(PG):
             score += 80
 
@@ -227,21 +437,22 @@ def search_programmes(user_question):
             else:
                 score -= 100
 
-        if score > best_score:
-            best_score = score
-            best_match = p
+        if score > 0:
+            matches.append((score, p))
 
-    # if best_match:
-    #     LAST_PROGRAMME = best_match
-    # return best_match
+    if not matches:
+        return []
 
-    # new added ib
-    if best_match and best_score > 0:
-        LAST_PROGRAMME = best_match
-        return best_match
-    return None
+    best_score = max(
+        score for score, p in matches
+    )
 
+    results = [
+        p for score, p in matches
+        if score == best_score
+    ]
 
+    return make_unique(results)
 def search_programme_list(question):
 
     question = normalize_question(question)

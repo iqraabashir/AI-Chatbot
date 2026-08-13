@@ -1,7 +1,11 @@
+import re
+
 from chatbot.programme_search import (
     search_programmes,
     get_last_programme,
-    search_programme_list
+    search_programme_list,
+    search_subject_overview,
+    search_all_matching_programmes
 )
 from chatbot.query_intents import *
 
@@ -279,86 +283,65 @@ def programme_response(question):
         return answer
 
     #GENERAL SUBJECT QUERY
-    level_words = [
+    level_words = {
         "bsc", "msc", "ba", "ma", "bca", "mca",
         "bba", "mba", "bcom", "mcom",
         "bed", "med", "integrated"
-    ]
-
-    generic_subject_query = (
-        "tell me about" in question
-        or "about" in question
-        or "information about" in question
-    )
+    }
     question_words = set(question.split())
     specific_programme_query = any(
         word in question_words
         for word in level_words
     )
-    
+    generic_subject_query = (
+      question == "it"
+      or question.startswith( "tell me about")
+      or question.startswith("about") 
+      or question.startswith("information about")
+    )
+
     if generic_subject_query and not specific_programme_query:
         subject_query = question
-        subject_query = subject_query.replace("tell me about", "")
-        subject_query = subject_query.replace("information about", "")
-        subject_query = subject_query.replace("about", "")
-        subject_query = subject_query.strip()
-        if subject_query == "it":
-            subject_query = "information technology"
-
-        # programmes = search_programme_list(subject_query)
-        import sqlite3
-        conn = sqlite3.connect(
-                "chatbot/knowledge.db"
+        subject_query = re.sub(
+           r"^(tell me about|information about|about)\s+",
+           "",
+            subject_query
+        ).strip()
+      
+        subject_result = search_subject_overview(
+            subject_query
         )
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT * FROM academic_programmes WHERE LOWER  (specialization) =?
-             OR LOWER(programme)=?
-             OR LOWER(department)=?
-        """,(
-         subject_query.lower(),
-         subject_query.lower(),
-         subject_query.lower()
-        ))
-        programmes = cursor.fetchall()
-        conn.close
 
-        if programmes:
-            for p in programmes:
-                subject_overview = (
-                 p["subject_overview"] or ""
-                ).strip()
-
-                if subject_overview:
-                #  subject_name = (
-                #     p["specialization"]
-                #     or p["programme"]
-                #  ).strip()
-
-                  return (
-                     f"📘 <b>{subject_query.title()}</b>\n\n"
-                     f"{subject_overview}"
-                  )
+        if subject_result:
+         return (
+            f"📘 <b>{subject_result['subject'].title()}</b>\n\n"
+            f"{subject_result['overview']}"
+         )
 
     programme = search_programmes(question)
-
-    if programme is None:
-        return (
+    college_query = (
+        "which college" in question
+        or "which colleges" in question
+        or "what college" in question
+        or "what colleges" in question
+        or "colleges offering" in question
+        or "colleges offer" in question
+    )
+    if college_query:
+        matching_programmes = search_all_matching_programmes(question)
+        if not matching_programmes:
+          return (
+           "I'm sorry, I couldn't find any "
+            "matching programme."
+        )
+        programme = matching_programmes[0]
+    else:
+        programme = search_programmes(question)
+        if programme is None:
+          return (
             "I'm sorry, I couldn't find any "
             "matching programme."
-       )
-
-    # programme = search_programmes(question)
-
-    # # if programme is None:
-    # #     programme = get_last_programme()
-
-    # if programme is None:
-    #     return (
-    #         "I'm sorry, I couldn't find any "
-    #         "matching programme."
-    #     )
+          )
 
     #SINGLE PROGRAMME RESPONSE
     response = [
@@ -371,6 +354,24 @@ def programme_response(question):
         )
 
     response[0] += "</b>\n"
+    if college_query:
+     colleges = []
+     for p in matching_programmes:
+      college = (
+        p["college"] or ""
+      ).strip()
+
+      if college and college not in colleges:
+        colleges.append(college)
+
+     if len(colleges) > 1:
+      response.append(
+        "<b>Colleges Offering:</b>\n" +
+        "\n".join(
+            f"🏛 {college}"
+            for college in colleges
+        )
+     )
 
     if contains_any(question, INTAKE):
         response.append(
@@ -396,12 +397,20 @@ def programme_response(question):
             f"{programme['duration']}"
         )
 
-    if contains_any(question, COLLEGE):
-        response.append(
-            f"<b>College:</b> "
-            f"{programme['college']}"
-        )
-
+    # if contains_any(question, COLLEGE):
+    #     if len(colleges) > 1:
+    #      response.append(
+    #         "<b>Colleges:</b>\n" +
+    #         "\n".join(
+    #             f"🏛 {college}"
+    #             for college in colleges   
+    #         )
+    #     )
+    #     elif len(colleges) == 1:
+    #         response.append(
+    #             f"<b>College:</b> {colleges[0]}"
+            # )
+    
     if contains_any(question, DEPARTMENT):
         response.append(
             f"<b>Department:</b> "
@@ -423,8 +432,7 @@ def programme_response(question):
         return "\n\n".join(response)
 
     return f"""
-📘 {programme['programme']}
-{" - " + programme['specialization'] if programme['specialization'] else ""}
+📘 {programme['programme']}{"-" + programme['specialization'] if programme['specialization'] else ""}
 
 Programme Level: {programme['level']}
 
@@ -444,7 +452,7 @@ Admission Process: {programme['admission_process']}
 
 Selection Process: {programme['selection_process']}
 
-Overview: {programme['overview']}
+Overview: {programme['subject_overview'] or programme['overview']}
 
 School: {programme['school']}
 

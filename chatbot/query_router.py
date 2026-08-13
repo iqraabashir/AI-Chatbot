@@ -84,6 +84,31 @@ def detect_query_type(question):
         "tender",
         "news"
     ]
+    # universityinfo
+    university_keywords = [
+    "university mission",
+    "university vision",
+    "university name",
+    "university established",
+    "university type",
+    "university headquarters",
+    "university purpose",
+    "university funding",
+    "university chancellor",
+    "university vice chancellor",
+    "university pro chancellor",
+    "university registrar",
+    "university controller",
+    "university administration",
+    "constituent colleges",
+    "constituent college",
+    "cluster university",
+    "vice chancellor",
+    "pro chancellor",
+    "chancellor",
+    "registrar",
+    "controller of examinations"
+]
     college_keywords = [
        "principal",
        "campus",
@@ -130,6 +155,12 @@ def detect_query_type(question):
    ]
     if any(x in question for x in programme_fields):
         return "programme"
+    # uniinfo
+    for word in university_keywords:
+            if word in question:
+                return "university"
+
+    
     for word in college_keywords:
         if word in question:
             return "college"
@@ -137,6 +168,9 @@ def detect_query_type(question):
     if "integrated" in question:
         return "programme"
     print("programme_keywords", programme_keywords)
+    # for word in university_keywords:
+    #     if word in question:
+    #         return "university"
     for word in programme_keywords:
         if word in question:
             return "programme"

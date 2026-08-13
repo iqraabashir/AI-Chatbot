@@ -10,6 +10,7 @@ from chatbot.programme_response import programme_response
 from chatbot.knowledge_database import get_topic_fields, get_topic
 from chatbot.semantic_search import find_best_topic
 from chatbot.web_search import search_web_knowledge
+from chatbot.university_response import university_response
 
 def format_topic(topic_name):
     topic = get_topic(topic_name)
@@ -85,6 +86,16 @@ def build_response(user_question):
     print("Question:", user_question)
     start = time.time()
     query_type = qr.detect_query_type(user_question)
+
+# universityinfo
+    if query_type == "university":
+        answer = university_response(user_question)
+        print("University Time:", time.time() - start)
+
+        if answer:
+            return answer
+
+        return "University information not found."
     
     #PROGRAMME 
     if query_type == "programme":
