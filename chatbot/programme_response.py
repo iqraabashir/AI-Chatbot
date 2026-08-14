@@ -179,10 +179,8 @@ def programme_response(question):
 
             if specialization:
 
-                title = (
-                    f"{programme_name} - "
-                    f"{specialization}"
-                )
+                title = (f"{programme_name} - {specialization}")
+                
             else:
 
                 title = programme_name
@@ -190,26 +188,92 @@ def programme_response(question):
                 programme_titles.append(title)
 
         #HEADING
-        display_programme = None
+                display_programme = None
+        q = question.lower()
 
-        programme_aliases = {
-            "bca": "BCA",
-            "bachelor of computer applications": "BCA",
-            "bba": "BBA",
-            "bcom": "B.Com",
-            "bachelor of commerce": "B.Com",
-            "ba": "B.A.",
-            "bsc": "B.Sc.",
-            "bachelor of arts": "B.A.",
-            "bachelor of science": "B.Sc.",
-            "bed": "B.Ed.",
-            "b.ed": "B.Ed."
-        }
+        # PROGRAMME NAME
+        if re.search(r"\bbca\b", q):
+            display_programme = "BCA"
 
-        for alias, display_name in programme_aliases.items():
-            if alias in question:
-                display_programme = display_name
-                break
+        elif re.search(r"\bbba\b", q):
+            display_programme = "BBA"
+
+        elif re.search(r"\bb\.?com\b", q):
+            display_programme = "B.Com"
+
+        elif re.search(r"\bmsc\b", q):
+            display_programme = "M.Sc."
+
+        elif re.search(r"\bbsc\b", q):
+            display_programme = "B.Sc."
+
+        elif re.search(r"\bma\b", q):
+            display_programme = "M.A."
+
+        elif re.search(r"\bba\b", q):
+            display_programme = "B.A."
+
+        elif re.search(r"\bmca\b", q):
+            display_programme = "MCA"
+
+        elif re.search(r"\bmba\b", q):
+            display_programme = "MBA"
+
+        elif re.search(r"\bmcom\b", q):
+            display_programme = "M.Com"
+
+        elif re.search(r"\bmed\b", q):
+            display_programme = "M.Ed."
+
+        elif re.search(r"\bbed\b", q):
+            display_programme = "B.Ed."
+
+        # FIND SUBJECT / SPECIALIZATION
+        if display_programme:
+
+            best_specialization = ""
+
+            for p in programmes:
+
+                specialization = (
+                    p["specialization"] or ""
+                ).strip()
+
+                if not specialization:
+                    continue
+
+                spec_lower = specialization.lower()
+
+                # Ignore generic values
+                if spec_lower in [
+                    "general",
+                    "regular",
+                    "none"
+                ]:
+                    continue
+
+                # Check whether specialization appears
+                # in the user's complete question
+                if spec_lower in q:
+                    best_specialization = specialization
+                    break
+                if (
+                   spec_lower == "information technology"
+                   and re.search(r"\bit\b", q)
+                ):
+                   best_specialization = specialization
+                   break
+
+            if best_specialization:
+
+                display_programme = (
+                    f"{display_programme} "
+                    f"{best_specialization}"
+                )
+
+        elif len(programme_titles) == 1:
+
+            display_programme = programme_titles[0]
 
         if display_programme:
             answer = (
@@ -217,17 +281,118 @@ def programme_response(question):
                 f"{display_programme}:</b>\n\n"
             )
 
-        elif len(programme_titles) == 1:
-            answer = (
-                f"<b>Colleges Offering "
-                f"{programme_titles[0]}:</b>\n\n"
-            )
-
         else:
             answer = (
                 "<b>Colleges Offering the Matching "
                 "Programmes:</b>\n\n"
             )
+        # display_programme = None
+        # q = question.lower()
+        # if "bca" in q:
+        #     display_programme = "BCA"
+        # elif "bba" in q:
+        #     display_programme = "BBA"
+        # elif "bcom" in q:
+        #     display_programme = "B.Com"
+        # elif "msc" in q:
+        #     if "physics" in q:
+        #         display_programme = "M.Sc. - Physics"
+        #     elif "information technology" in q or re.search  (r"\bmsc\s+it\b", q):
+        #         display_programme = "M.Sc. - Information Technology"
+        #     else:
+        #         display_programme = "M.Sc."
+        # elif "bsc" in q:
+        #     display_programme = "B.Sc."
+        #     for p in programmes:
+
+        #      programme_name = (
+        #        p["programme"] or ""
+        #      ).strip()
+
+        #      specialization = (
+        #       p["specialization"] or ""
+        #      ).strip()
+
+        #      if not specialization:
+        #       continue
+
+        #      spec_words = set(
+        #       specialization.lower().split()
+        #      )
+
+        #      question_words = set(
+        #      q.split()
+        #      )
+
+        #      if spec_words.intersection(
+        #      question_words
+        #      ):
+        #       display_programme = (
+        #         f"{programme_name} - "
+        #         f"{specialization}"
+        #       )
+        #       break
+        # elif "ba" in q:
+        #     if "english" in q:
+        #        display_programme = "B.A. - English"
+        #     elif "history" in q:
+        #        display_programme = "B.A. - History"
+        #     elif "economics" in q:
+        #        display_programme = "B.A. - Economics"
+        #     else:
+        #        display_programme = "B.A."
+        # elif "bed" in q:
+        #     display_programme = "B.Ed."
+
+        # elif len(programme_titles) == 1:
+        #     display_programme = programme_titles[0]
+        # if display_programme:
+        #     answer = (
+        #      f"<b>Colleges Offering "
+        #      f"{display_programme}:</b>\n\n"
+        #     )
+        # else:
+        #     answer = (
+        #      "<b>Colleges Offering the Matching "
+        #      "Programmes:</b>\n\n"
+        #     )
+
+        # programme_aliases = {
+        #     "bca": "BCA",
+        #     "bachelor of computer applications": "BCA",
+        #     "bba": "BBA",
+        #     "bcom": "B.Com",
+        #     "bachelor of commerce": "B.Com",
+        #     "ba": "B.A.",
+        #     "bsc": "B.Sc.",
+        #     "bachelor of arts": "B.A.",
+        #     "bachelor of science": "B.Sc.",
+        #     "bed": "B.Ed.",
+        #     "b.ed": "B.Ed."
+        # }
+
+        # for alias, display_name in programme_aliases.items():
+        #     if alias in question:
+        #         display_programme = display_name
+        #         break
+
+        # if display_programme:
+        #     answer = (
+        #         f"<b>Colleges Offering "
+        #         f"{display_programme}:</b>\n\n"
+        #     )
+
+        # elif len(programme_titles) == 1:
+        #     answer = (
+        #         f"<b>Colleges Offering "
+        #         f"{programme_titles[0]}:</b>\n\n"
+        #     )
+
+        # else:
+        #     answer = (
+        #         "<b>Colleges Offering the Matching "
+        #         "Programmes:</b>\n\n"
+        #     )
         # if len(programme_titles) == 1:
         #     answer = (
         #         f"<b>Colleges Offering "
@@ -271,11 +436,36 @@ def programme_response(question):
         "programs",
         "program"
     ]
-
-    is_list_query = any(
-        word in question
-        for word in list_keywords
+    college_query = (
+        "which college" in question
+        or "which colleges" in question
+        or "what college" in question
+        or "what colleges" in question
+        or "colleges offering" in question
+        or "colleges offer" in question
+        or "colleges have" in question
+        or "college has" in question
+        or "where can i study" in question
+        or "where to study" in question
+        or "where can i do" in question
     )
+
+# Questions asking for the department of a programme
+    department_query = (
+       "which department" in question
+       or "what department" in question
+       or "which dept" in question
+       or "what dept" in question
+       or "department offers" in question
+       or "department offer" in question
+    )
+
+    is_list_query = (
+        any(word in question for word in list_keywords)
+        and not college_query
+        and not department_query
+    )
+
 
     if is_list_query:
         programmes = search_programme_list(
@@ -327,6 +517,7 @@ def programme_response(question):
         "bed", "med", "integrated"
     }
     question_words = set(question.split())
+
     specific_programme_query = any(
         word in question_words
         for word in level_words
@@ -356,7 +547,7 @@ def programme_response(question):
             f"{subject_result['overview']}"
          )
 
-    programme = search_programmes(question)
+    programme = search_programmes(question)  
     college_query = (
         "which college" in question
         or "which colleges" in question
@@ -364,22 +555,51 @@ def programme_response(question):
         or "what colleges" in question
         or "colleges offering" in question
         or "colleges offer" in question
+        or "where can i study" in question
+        or "where to study" in question
+        or "where can i do" in question
     )
     if college_query:
         matching_programmes = search_all_matching_programmes(question)
+        print("\nMATCHING PROGRAMMES:")
+        for p in matching_programmes:
+          print(
+            "PROGRAMME =", p["programme"],
+            "| SPECIALIZATION =", p["specialization"],
+            "| COLLEGE =", p["college"]
+          )
         if not matching_programmes:
           return (
            "I'm sorry, I couldn't find any "
             "matching programme."
-        )
+          )
         programme = matching_programmes[0]
     else:
-        programme = search_programmes(question)
+        # programme = search_programmes(question)
         if programme is None:
           return (
             "I'm sorry, I couldn't find any "
             "matching programme."
           )
+        if contains_any(question, DEPARTMENT):
+          return (
+            f"📘 <b>{programme['programme']}"
+            f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"
+            f"<b>Department:</b> {programme['department']}"
+          )
+    # DEPARTMENT QUERY
+    if department_query:
+
+        programme = search_programmes(question)
+
+        if programme is None:
+          return "I'm sorry, I couldn't find any matching programme."
+
+        return (
+          f"📘 <b>{programme['programme']}"
+          f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"
+          f"<b>Department:</b> {programme['department']}"
+        )
 
     #SINGLE PROGRAMME RESPONSE
     response = [

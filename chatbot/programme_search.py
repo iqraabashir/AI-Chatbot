@@ -413,46 +413,173 @@ def search_all_matching_programmes(user_question):
         if normalized_programme in question:
             score += 3000
 
-        if specialization:
-            spec_words = get_words(specialization)
-            score += len(
-                spec_words.intersection(words)
-            ) * 50
-
-        if department:
-            dept_words = get_words(department)
-            score += len(
-                dept_words.intersection(words)
-            ) * 20
-
+        specialization_words = get_words(
+            specialization
+        )
+        specialization_matches = (
+            specialization_words.intersection(words)
+        )
+        if specialization_matches:
+            score += (
+                len(specialization_matches) * 500
+            )
+        department_words = get_words(
+            department
+        )
+        department_matches = (
+            department_words.intersection(words)
+        )
+        if department_matches:
+            score += (
+                len(department_matches) * 100
+            )
         if level == "pg" and words.intersection(PG):
             score += 80
-
         if level == "ug" and words.intersection(UG):
             score += 80
 
         if "integrated" in words:
+
             if level == "integrated":
                 score += 100
+
             else:
                 score -= 100
+        requested_subject_words = (
+            words
+            - {
+                "which",
+                "what",
+                "college",
+                "colleges",
+                "offer",
+                "offers",
+                "offering",
+                "provide",
+                "provides",
+                "provided",
+                "programme",
+                "programmes",
+                "program",
+                "programs",
+                "course",
+                "courses",
+                "the",
+                "a",
+                "an",
+                "of",
+                "in",
+                "for",
+                "where",
+                "can",
+                "i",
+                "study",
+                "to",
+                "me",
+                "is",
+                "are",
+                "available",
+                "show",
+                "list",
+                "all"
+            }
+        )
+        requested_subject_words -= (
+            UG | PG
+        )
+        requested_subject_words.discard(
+            "integrated"
+        )
+        if requested_subject_words:
 
-        if score > 0:
-            matches.append((score, p))
+            searchable_words = (
+                get_words(programme_name)
+                | get_words(specialization)
+                | get_words(department)
+            )
+
+            subject_matches = (
+                requested_subject_words.intersection(
+                    searchable_words
+                )
+            )
+
+            if not subject_matches:
+                continue
+        
+        # if specialization:
+        #     spec_words = get_words(specialization)
+        #     score += len(
+        #         spec_words.intersection(words)
+        #     ) * 50
+
+        # if department:
+        #     dept_words = get_words(department)
+        #     score += len(
+        #         dept_words.intersection(words)
+        #     ) * 20
+
+        # if level == "pg" and words.intersection(PG):
+        #     score += 80
+
+        # if level == "ug" and words.intersection(UG):
+        #     score += 80
+
+        # if "integrated" in words:
+        #     if level == "integrated":
+        #         score += 100
+        #     else:
+        #         score -= 100
+
+        # if score > 0:
+        #     matches.append((score, p))
 
     if not matches:
         return []
 
-    best_score = max(
-        score for score, p in matches
-    )
+    if requested_subject_words:
+       subject_results = []
+       for score, p in matches:
+          programme_name = (
+           p["programme"] or ""
+          ).lower().strip()
 
+          specialization = (
+            p["specialization"] or ""
+          ).lower().strip()
+
+          department = (
+            p["department"] or ""
+          ).lower().strip()
+
+          searchable_words = (
+            get_words(programme_name)
+            | get_words(specialization)
+            | get_words(department)
+          )
+
+          subject_matches = (
+            requested_subject_words.intersection(
+                searchable_words
+            )
+          )
+
+          if subject_matches:
+             subject_results.append(p)
+
+       if subject_results:
+             return make_unique(subject_results)
+
+    best_score = max(
+        score 
+        for score, _ in matches
+    )
     results = [
         p for score, p in matches
         if score == best_score
     ]
-
     return make_unique(results)
+
 def search_programme_list(question):
 
     question = normalize_question(question)
