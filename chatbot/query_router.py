@@ -86,28 +86,39 @@ def detect_query_type(question):
     ]
     # universityinfo
     university_keywords = [
-    "university mission",
-    "university vision",
-    "university name",
-    "university established",
-    "university type",
-    "university headquarters",
-    "university purpose",
-    "university funding",
-    "university chancellor",
-    "university vice chancellor",
-    "university pro chancellor",
-    "university registrar",
-    "university controller",
-    "university administration",
-    "constituent colleges",
-    "constituent college",
-    "cluster university",
-    "vice chancellor",
-    "pro chancellor",
-    "chancellor",
-    "registrar",
-    "controller of examinations"
+        "university",
+        "cluster university",
+        "university mission",
+        "university vision",
+        "university name",
+        "university established",
+        "university type",
+        "university headquarters",
+        "university purpose",
+        "university funding",
+
+        "constituent colleges",
+        "constituent college",
+
+        "chancellor",
+        "vice chancellor",
+        "pro chancellor",
+        "vc",
+        "pro-chancellor",
+        "registrar",
+
+        "controller of examinations",
+        "controller of examination",
+        "controller of exams",
+        "controller exams",
+        "exam controller",
+        "examination controller",
+        "exam controller of university",
+        "university exam controller",
+        "university examination controller",
+        "controller of university exams",
+        "controller of university examinations"
+
 ]
     college_keywords = [
        "principal",
@@ -144,15 +155,15 @@ def detect_query_type(question):
        "iase"   
     ]
     programme_fields = [
-    "fee",
-    "fees",
-    "eligibility",
-    "duration",
-    "intake",
-    "admission",
-    "selection",
-    "overview"
-   ]
+      "fee",
+      "fees",
+      "eligibility",
+      "duration",
+      "intake",
+      "admission",
+      "selection",
+      "overview"
+    ]
     if any(x in question for x in programme_fields):
         return "programme"
     # uniinfo
@@ -168,9 +179,7 @@ def detect_query_type(question):
     if "integrated" in question:
         return "programme"
     print("programme_keywords", programme_keywords)
-    # for word in university_keywords:
-    #     if word in question:
-    #         return "university"
+  
     for word in programme_keywords:
         if word in question:
             return "programme"

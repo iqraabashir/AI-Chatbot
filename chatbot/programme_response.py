@@ -190,16 +190,54 @@ def programme_response(question):
                 programme_titles.append(title)
 
         #HEADING
-        if len(programme_titles) == 1:
+        display_programme = None
+
+        programme_aliases = {
+            "bca": "BCA",
+            "bachelor of computer applications": "BCA",
+            "bba": "BBA",
+            "bcom": "B.Com",
+            "bachelor of commerce": "B.Com",
+            "ba": "B.A.",
+            "bsc": "B.Sc.",
+            "bachelor of arts": "B.A.",
+            "bachelor of science": "B.Sc.",
+            "bed": "B.Ed.",
+            "b.ed": "B.Ed."
+        }
+
+        for alias, display_name in programme_aliases.items():
+            if alias in question:
+                display_programme = display_name
+                break
+
+        if display_programme:
+            answer = (
+                f"<b>Colleges Offering "
+                f"{display_programme}:</b>\n\n"
+            )
+
+        elif len(programme_titles) == 1:
             answer = (
                 f"<b>Colleges Offering "
                 f"{programme_titles[0]}:</b>\n\n"
             )
+
         else:
             answer = (
                 "<b>Colleges Offering the Matching "
                 "Programmes:</b>\n\n"
             )
+        # if len(programme_titles) == 1:
+        #     answer = (
+        #         f"<b>Colleges Offering "
+        #         f"{programme_titles[0]}:</b>\n\n"
+        #     )
+        # else:
+        #     answer = (
+        #         "<b>Colleges Offering the Matching "
+        #         "Programmes:</b>\n\n"
+        #     )
 
         #COLLEGE LIST
         for college in colleges:
