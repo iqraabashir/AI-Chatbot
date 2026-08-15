@@ -241,9 +241,49 @@ def search_programmes(user_question):
         level = normalize_question (
             p["level"] or ""
         )
+        programme_key = programme_name.replace(" ", "")
+
+        if programme_key in ["msc", "m.sc"]:
+            programme_key = "msc"
+
+        elif programme_key in ["bsc", "b.sc"]:
+            programme_key = "bsc"
+
+        elif programme_key in ["ma", "m.a"]:
+            programme_key = "ma"
+
+        elif programme_key in ["ba", "b.a"]:
+            programme_key = "ba"
+
+        elif programme_key in ["mca", "m.c.a"]:
+            programme_key = "mca"
+
+        elif programme_key in ["bca", "b.c.a"]:
+            programme_key = "bca"
+
+        elif programme_key in ["mba", "m.b.a"]:
+            programme_key = "mba"
+
+        elif programme_key in ["bba", "b.b.a"]:
+            programme_key = "bba"
+
+        elif programme_key in ["mcom", "m.com"]:
+            programme_key = "mcom"
+
+        elif programme_key in ["bcom", "b.com"]:
+            programme_key = "bcom"
+
+        elif programme_key in ["bed", "b.ed"]:
+            programme_key = "bed"
+
+        elif programme_key in ["med", "m.ed"]:
+            programme_key = "med"
         # .lower().strip()
 
         score = 0
+        question_key = question.replace(" ", "")
+        if programme_key and programme_key in question_key:
+            score += 10000
         if programme_name == question:
             score += 10000
         full_name = (
@@ -251,19 +291,56 @@ def search_programmes(user_question):
         ).strip()
         if full_name == question:
             score += 9000
+    
+        if programme_name:
+            programme_words = get_words(programme_name)
 
-        if programme_name and programme_name in words:
-            score += 5000
+            if programme_words.issubset(words):
+               score += 5000
 
         if specialization:
             spec_words = get_words(specialization)
 
+            specialization_matches = (
+                spec_words.intersection(words)
+            )
             if spec_words.issubset(words):
                 score += 4000
-            else:
+            elif specialization_matches:
                 score += (
-                    len(spec_words.intersection(words)) * 500
+                    len(specialization_matches) * 500
                 )
+
+         # Reject programmes with a different specialization
+        subject_words = (
+            words
+            - {
+                "what",
+                "is",
+                "the",
+                "fee",
+                "fees",
+                "of",
+                "for",
+                "me",
+                "tell",
+                "about",
+                "please",
+                "give",
+                "information",
+                "programme",
+                "program",
+                "course"
+            }
+            - UG
+            - PG
+        )
+
+        if subject_words and specialization:
+            spec_words = get_words(specialization)
+
+            if not spec_words.intersection(subject_words):
+                score -= 10000
 
         if department:
             dept_words = get_words(department)
@@ -279,10 +356,61 @@ def search_programmes(user_question):
             score += 500
 
         if level == "integrated" and "integrated" in words:
-            score += 500
+            score += 3000
+            
+        requested_programme = None
+        if "msc" in words:
+            requested_programme = "msc"
+        elif "bsc" in words:
+            requested_programme = "bsc"
+        elif "mca" in words:
+            requested_programme = "mca"
+        elif "bca" in words:
+            requested_programme = "bca"
+        elif "mba" in words:
+            requested_programme = "mba"
+
+        elif "bba" in words:
+            requested_programme = "bba"
+
+        elif "mcom" in words:
+            requested_programme = "mcom"
+
+        elif "bcom" in words:
+            requested_programme = "bcom"
+
+        elif "med" in words:
+            requested_programme = "med"
+
+        elif "bed" in words:
+            requested_programme = "bed"
+
+        elif "ma" in words:
+            requested_programme = "ma"
+
+        elif "ba" in words:
+            requested_programme = "ba"
+        if requested_programme:
+            if programme_name == requested_programme:
+                score += 5000
+            elif (
+                 level == "integrated"
+                 and "integrated" in words
+                 and requested_programme in get_words(
+                 programme_name.replace("integrated", "").strip()
+                )
+            ):
+                score += 5000
+
+    # Different programme
+            elif requested_programme not in get_words(
+                programme_name
+            ):
+                score -= 3000
         if score > best_score:
             best_score = score
             best_match = p
+        
 
     if best_match and best_score > 0:
         LAST_PROGRAMME = best_match
@@ -386,8 +514,128 @@ def search_all_matching_programmes(user_question):
     question = normalize_question(user_question)
     words = get_words(question)
     programmes = get_all_programmes()
+
     matches = []
+
+    # ---------------------------------------------------------
+    # DETERMINE REQUESTED PROGRAMME
+    # ---------------------------------------------------------
+
+    requested_programme = None
+
+    programme_order = [
+        "msc",
+        "bsc",
+        "mca",
+        "bca",
+        "mba",
+        "bba",
+        "mcom",
+        "bcom",
+        "med",
+        "bed",
+        "ma",
+        "ba"
+    ]
+
+    for programme in programme_order:
+        if programme in words:
+            requested_programme = programme
+            break
+
+    # ---------------------------------------------------------
+    # DETERMINE WHETHER INTEGRATED WAS REQUESTED
+    # ---------------------------------------------------------
+
+    requested_integrated = (
+        "integrated" in words
+    )
+
+    print(
+        "REQUESTED PROGRAMME:",
+        requested_programme
+    )
+
+    print(
+        "REQUESTED INTEGRATED:",
+        requested_integrated
+    )
+
+    # ---------------------------------------------------------
+    # DETERMINE SUBJECT WORDS ONCE
+    # ---------------------------------------------------------
+
+    ignored_words = {
+        "which",
+        "what",
+        "college",
+        "colleges",
+        "offer",
+        "offers",
+        "offering",
+        "provide",
+        "provides",
+        "provided",
+        "programme",
+        "programmes",
+        "program",
+        "programs",
+        "course",
+        "courses",
+        "the",
+        "a",
+        "an",
+        "of",
+        "in",
+        "for",
+        "where",
+        "can",
+        "i",
+        "study",
+        "to",
+        "me",
+        "is",
+        "are",
+        "available",
+        "show",
+        "list",
+        "all",
+        "have",
+        "has",
+        "please",
+        "tell",
+        "give",
+        "information",
+        "about",
+        "fee",
+        "fees",
+        "intake",
+        "duration",
+        "eligibility",
+        "admission",
+        "selection",
+        "process"
+    }
+
+    requested_subject_words = (
+        words - ignored_words - UG - PG
+    )
+
+    requested_subject_words.discard(
+        "integrated"
+    )
+
+    print(
+        "REQUESTED SUBJECT WORDS:",
+        requested_subject_words
+    )
+
+    # ---------------------------------------------------------
+    # CHECK EVERY PROGRAMME
+    # ---------------------------------------------------------
+
     for p in programmes:
+
         programme_name = (
             p["programme"] or ""
         ).lower().strip()
@@ -405,98 +653,53 @@ def search_all_matching_programmes(user_question):
         ).lower().strip()
 
         normalized_programme = (
-            normalize_programme_name(programme_name)
-        )
-
-        score = 0
-
-        if normalized_programme in question:
-            score += 3000
-
-        specialization_words = get_words(
-            specialization
-        )
-        specialization_matches = (
-            specialization_words.intersection(words)
-        )
-        if specialization_matches:
-            score += (
-                len(specialization_matches) * 500
+            normalize_programme_name(
+                programme_name
             )
-        department_words = get_words(
-            department
         )
-        department_matches = (
-            department_words.intersection(words)
+
+        programme_words = get_words(
+            normalized_programme
         )
-        if department_matches:
-            score += (
-                len(department_matches) * 100
-            )
-        if level == "pg" and words.intersection(PG):
-            score += 80
-        if level == "ug" and words.intersection(UG):
-            score += 80
 
-        if "integrated" in words:
+        # -----------------------------------------------------
+        # PROGRAMME MATCH
+        # -----------------------------------------------------
 
+        if requested_programme:
+
+            if requested_programme not in programme_words:
+                continue
+
+        # -----------------------------------------------------
+        # INTEGRATED / NON-INTEGRATED MATCH
+        # -----------------------------------------------------
+
+        if requested_integrated:
+
+            # User explicitly asked for Integrated.
+            # Therefore only Integrated programmes are allowed.
+            if level != "integrated":
+                continue
+
+        else:
+
+            # User did NOT ask for Integrated.
+            # Therefore do not return Integrated versions.
             if level == "integrated":
-                score += 100
+                continue
 
-            else:
-                score -= 100
-        requested_subject_words = (
-            words
-            - {
-                "which",
-                "what",
-                "college",
-                "colleges",
-                "offer",
-                "offers",
-                "offering",
-                "provide",
-                "provides",
-                "provided",
-                "programme",
-                "programmes",
-                "program",
-                "programs",
-                "course",
-                "courses",
-                "the",
-                "a",
-                "an",
-                "of",
-                "in",
-                "for",
-                "where",
-                "can",
-                "i",
-                "study",
-                "to",
-                "me",
-                "is",
-                "are",
-                "available",
-                "show",
-                "list",
-                "all"
-            }
+        # -----------------------------------------------------
+        # SUBJECT MATCH
+        # -----------------------------------------------------
+
+        searchable_words = (
+            get_words(programme_name)
+            | get_words(specialization)
+            | get_words(department)
         )
-        requested_subject_words -= (
-            UG | PG
-        )
-        requested_subject_words.discard(
-            "integrated"
-        )
+
         if requested_subject_words:
-
-            searchable_words = (
-                get_words(programme_name)
-                | get_words(specialization)
-                | get_words(department)
-            )
 
             subject_matches = (
                 requested_subject_words.intersection(
@@ -506,83 +709,541 @@ def search_all_matching_programmes(user_question):
 
             if not subject_matches:
                 continue
-        
-        # if specialization:
-        #     spec_words = get_words(specialization)
-        #     score += len(
-        #         spec_words.intersection(words)
-        #     ) * 50
 
-        # if department:
-        #     dept_words = get_words(department)
-        #     score += len(
-        #         dept_words.intersection(words)
-        #     ) * 20
+        # -----------------------------------------------------
+        # SCORING
+        # -----------------------------------------------------
 
-        # if level == "pg" and words.intersection(PG):
-        #     score += 80
+        score = 0
 
-        # if level == "ug" and words.intersection(UG):
-        #     score += 80
+        # Exact programme match
+        if requested_programme:
 
-        # if "integrated" in words:
-        #     if level == "integrated":
-        #         score += 100
-        #     else:
-        #         score -= 100
+            if programme_name == requested_programme:
+                score += 10000
 
-        # if score > 0:
-        #     matches.append((score, p))
+            elif (
+                requested_programme
+                in programme_words
+            ):
+                score += 8000
+
+        # Integrated exactness
+        if requested_integrated:
+
+            if level == "integrated":
+                score += 5000
+
+        # Subject / specialization match
+        specialization_words = get_words(
+            specialization
+        )
+
+        specialization_matches = (
+            specialization_words.intersection(
+                requested_subject_words
+            )
+        )
+
+        if specialization_matches:
+
+            if specialization_words.issubset(
+                requested_subject_words
+            ):
+                score += 4000
+
+            else:
+                score += (
+                    len(specialization_matches) * 1000
+                )
+
+        # Department match
+        department_words = get_words(
+            department
+        )
+
+        department_matches = (
+            department_words.intersection(
+                requested_subject_words
+            )
+        )
+
+        if department_matches:
+            score += (
+                len(department_matches) * 100
+            )
+
+        # Exact normalized programme in question
+        if normalized_programme in question:
+            score += 3000
+
+        matches.append(
+            (score, p)
+        )
+
+    # ---------------------------------------------------------
+    # NO MATCHES
+    # ---------------------------------------------------------
 
     if not matches:
         return []
 
-    if requested_subject_words:
-       subject_results = []
-       for score, p in matches:
-          programme_name = (
-           p["programme"] or ""
-          ).lower().strip()
-
-          specialization = (
-            p["specialization"] or ""
-          ).lower().strip()
-
-          department = (
-            p["department"] or ""
-          ).lower().strip()
-
-          searchable_words = (
-            get_words(programme_name)
-            | get_words(specialization)
-            | get_words(department)
-          )
-
-          subject_matches = (
-            requested_subject_words.intersection(
-                searchable_words
-            )
-          )
-
-          if subject_matches:
-             subject_results.append(p)
-
-       if subject_results:
-             return make_unique(subject_results)
+    # ---------------------------------------------------------
+    # FIND HIGHEST SCORE
+    # ---------------------------------------------------------
 
     best_score = max(
-        score 
+        score
         for score, _ in matches
     )
+
     results = [
-        p for score, p in matches
+        p
+        for score, p in matches
         if score == best_score
     ]
+
     return make_unique(results)
+
+# def search_all_matching_programmes(user_question):
+#     question = normalize_question(user_question)
+#     words = get_words(question)
+#     programmes = get_all_programmes()
+#     matches = []
+#     requested_programme = None
+
+#     if "msc" in words:
+#         requested_programme = "msc"
+
+#     elif "bsc" in words:
+#         requested_programme = "bsc"
+
+#     elif "mca" in words:
+#         requested_programme = "mca"
+
+#     elif "bca" in words:
+#         requested_programme = "bca"
+
+#     elif "mba" in words:
+#         requested_programme = "mba"
+
+#     elif "bba" in words:
+#         requested_programme = "bba"
+
+#     elif "mcom" in words:
+#         requested_programme = "mcom"
+
+#     elif "bcom" in words:
+#         requested_programme = "bcom"
+
+#     elif "med" in words:
+#         requested_programme = "med"
+
+#     elif "bed" in words:
+#         requested_programme = "bed"
+
+#     elif "ma" in words:
+#         requested_programme = "ma"
+
+#     elif "ba" in words:
+#         requested_programme = "ba"
+
+#     print(
+#         "REQUESTED PROGRAMME:",
+#         requested_programme
+#     )
+#     for p in programmes:
+#         programme_name = (
+#             p["programme"] or ""
+#         ).lower().strip()
+
+#         specialization = (
+#             p["specialization"] or ""
+#         ).lower().strip()
+
+#         department = (
+#             p["department"] or ""
+#         ).lower().strip()
+
+#         level = (
+#             p["level"] or ""
+#         ).lower().strip()
+
+#         # if requested_programme:
+
+#         normalized_programme = normalize_programme_name(
+#             programme_name
+#         )
+
+#         # Remove "integrated" only for checking whether
+#         # the programme itself is MSc/BSc/etc.
+#         programme_words = get_words(
+#             normalized_programme
+#         )
+
+#         # Example:
+#         # "msc" -> {"msc"}
+#         # "integrated msc" -> {"integrated", "msc"}
+#         # "bsc" -> {"bsc"}
+
+#         if requested_programme not in programme_words:
+#             continue
+
+#         # IMPORTANT:
+#         # If user asked for MSc, do NOT include
+#         # Integrated MSc.
+#         if (
+#             requested_programme == "msc"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "bsc"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "ma"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "ba"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "mca"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "mba"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "bba"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         if (
+#             requested_programme == "bca"
+#             and "integrated" in programme_words
+#         ):
+#             continue
+
+#         # normalized_programme = (
+#         #     normalize_programme_name(programme_name)
+#         # )
+
+#         score = 0
+
+#         if normalized_programme in question:
+#             score += 3000
+
+#         specialization_words = get_words(
+#             specialization
+#         )
+#         specialization_matches = (
+#             specialization_words.intersection(words)
+#         )
+#         if specialization_matches:
+#             score += (
+#                 len(specialization_matches) * 500
+#             )
+#         department_words = get_words(
+#             department
+#         )
+#         department_matches = (
+#             department_words.intersection(words)
+#         )
+#         if department_matches:
+#             score += (
+#                 len(department_matches) * 100
+#             )
+
+#         # if "msc" in words:
+#         #    if programme_name == "msc" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+
+#         # elif "bsc" in words:
+#         #    if programme_name == "bsc" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+
+#         # elif "ma" in words:
+#         #    if programme_name == "ma" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+
+#         # elif "ba" in words:
+#         #    if programme_name == "ba" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+
+#         # elif "mca" in words:
+#         #    if programme_name == "mca" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+
+#         # elif "bca" in words:
+#         #    if programme_name == "bca" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+
+#         # elif "mba" in words:
+#         #    if programme_name == "mba" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+
+#         # elif "bba" in words:
+#         #    if programme_name == "bba" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+
+#         # elif "mcom" in words:
+#         #    if programme_name == "mcom" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+
+#         # elif "bcom" in words:
+#         #    if programme_name == "bcom" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+#         # elif "bed" in words:
+#         #    if programme_name == "bed" and level == "ug":
+#         #       score += 5000
+#         #    elif level != "ug":
+#         #       score -= 5000
+
+#         # elif "med" in words:
+#         #    if programme_name == "med" and level == "pg":
+#         #       score += 5000
+#         #    elif level != "pg":
+#         #       score -= 5000
+#         if "integrated" in words:
+
+#            if level == "integrated":
+#               score += 5000
+#            else:
+#               score -= 5000
+        
+#         # if level == "pg" and words.intersection(PG):
+#         #     score += 80
+#         # if level == "ug" and words.intersection(UG):
+#         #     score += 80
+
+#         # if "integrated" in words:
+
+#         #     if level == "integrated":
+#         #         score += 100
+
+#         #     else:
+#         #         score -= 100
+#         requested_subject_words = (
+#             words
+#             - {
+#                 "which",
+#                 "what",
+#                 "college",
+#                 "colleges",
+#                 "offer",
+#                 "offers",
+#                 "offering",
+#                 "provide",
+#                 "provides",
+#                 "provided",
+#                 "programme",
+#                 "programmes",
+#                 "program",
+#                 "programs",
+#                 "course",
+#                 "courses",
+#                 "the",
+#                 "a",
+#                 "an",
+#                 "of",
+#                 "in",
+#                 "for",
+#                 "where",
+#                 "can",
+#                 "i",
+#                 "study",
+#                 "to",
+#                 "me",
+#                 "is",
+#                 "are",
+#                 "available",
+#                 "show",
+#                 "list",
+#                 "all",
+#                 "have",
+#                 "has"
+#             }
+#         )
+#         requested_subject_words -= (
+#             UG | PG
+#         )
+#         requested_subject_words.discard(
+#             "integrated"
+#         )
+#         if requested_subject_words:
+
+#             searchable_words = (
+#                 get_words(programme_name)
+#                 | get_words(specialization)
+#                 | get_words(department)
+#             )
+
+#             subject_matches = (
+#                 requested_subject_words.intersection(
+#                     searchable_words
+#                 )
+#             )
+
+#             if not subject_matches:
+#                 continue
+#         matches.append((score,p))
+
+#     if not matches:
+#         return []
+
+#     if requested_subject_words:
+#        subject_results = []
+#        for score, p in matches:
+#           programme_name = (
+#            p["programme"] or ""
+#           ).lower().strip()
+
+#           specialization = (
+#             p["specialization"] or ""
+#           ).lower().strip()
+
+#           department = (
+#             p["department"] or ""
+#           ).lower().strip()
+
+#           searchable_words = (
+#             get_words(programme_name)
+#             | get_words(specialization)
+#             | get_words(department)
+#           )
+
+#           subject_matches = (
+#             requested_subject_words.intersection(
+#                 searchable_words
+#             )
+#           )
+
+#           if subject_matches:
+#              subject_results.append(p)
+
+#        if subject_results:
+#              return make_unique(subject_results)
+
+#     best_score = max(
+#         score 
+#         for score, _ in matches
+#     )
+#     results = [
+#         p for score, p in matches
+#         if score == best_score
+#     ]
+#     return make_unique(results)
 
 def search_programme_list(question):
 
     question = normalize_question(question)
+    question = re.sub(
+        r"\bm\s+sc\b",
+        "msc",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+sc\b",
+        "bsc",
+        question
+    )
+
+    question = re.sub(
+        r"\bm\s+com\b",
+        "mcom",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+com\b",
+        "bcom",
+        question
+    )
+
+    question = re.sub(
+        r"\bm\s+ca\b",
+        "mca",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+ca\b",
+        "bca",
+        question
+    )
+
+    question = re.sub(
+        r"\bm\s+ba\b",
+        "mba",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+ba\b",
+        "bba",
+        question
+    )
+
+    question = re.sub(
+        r"\bm\s+a\b",
+        "ma",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+a\b",
+        "ba",
+        question
+    )
+
+    question = re.sub(
+        r"\bm\s+ed\b",
+        "med",
+        question
+    )
+
+    question = re.sub(
+        r"\bb\s+ed\b",
+        "bed",
+        question
+    )
     typo_replacements = {
         "programmemes": "programmes",
         "programmee": "programme",

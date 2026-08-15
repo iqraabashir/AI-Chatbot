@@ -187,7 +187,10 @@ def university_response(question):
     if email:
         response.append(
             f'<b>Email:</b> '
-            f'<a href="mailto:{email}">{email}</a>'
+            f'<a href="mailto:{email}" '
+            f'style="color: inherit; text-decoration: underline;">'
+            f'{email}'
+            f'</a>'
         )
 
     if url:
