@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, render_template, request
+import os
+from flask import Flask, jsonify, render_template, request,send_from_directory 
 from chatbot.intents import get_response
 
 
@@ -24,6 +25,20 @@ def chatbot_response():
         "response": bot_reply
     })
     
+@app.route("/prospectus")
+def prospectus():
+    pdf_directory = os.path.join(
+        app.root_path,
+        "data",
+        "official_data",
+        "pdfs"
+    )
+
+    return send_from_directory(
+        pdf_directory,
+        "Prospectus.pdf"
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)

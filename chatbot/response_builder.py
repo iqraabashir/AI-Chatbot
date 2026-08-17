@@ -1,5 +1,5 @@
 import time
-from chatbot.query_router import detect_query_type
+# from chatbot.query_router import detect_query_type
 import chatbot.query_router as qr
 
 from chatbot.college_response import college_response
@@ -52,33 +52,33 @@ def format_topic(topic_name):
             response += f"{field_dict[item]}\n\n"
     return response
 
-def detect_query_type(user_question):
-    question = user_question.lower()
-    programme_keywords = [
-        "programme", "program", "course", "degree", "admission", "eligibility",
-        "fee", "duration", "semester", "curriculum", "syllabus", "selection process"
-    ]
-    college_keywords = [
-        "college", "university", "campus", "hostel", "faculty", "department", "departments",
-        "infrastructure", "ranking", "location"
-    ]
-    pdf_keywords = [
-        "pdf", "document", "official document", "brochure", "prospectus",
-        "handbook", "notice", "circular", "regulation"
-    ]
-    website_keywords = [
-        "website", "web page", "official website", "link", "url", "online information"
-    ]
+# def detect_query_type(user_question):
+#     question = user_question.lower()
+#     programme_keywords = [
+#         "programme", "program", "course", "degree", "admission", "eligibility",
+#         "fee", "duration", "semester", "curriculum", "syllabus", "selection process"
+#     ]
+#     college_keywords = [
+#         "college", "university", "campus", "hostel", "faculty", "department", "departments",
+#         "infrastructure", "ranking", "location"
+#     ]
+#     pdf_keywords = [
+#         "pdf", "document", "official document", "brochure", "prospectus",
+#         "handbook", "notice", "circular", "regulation"
+#     ]
+#     website_keywords = [
+#         "website", "web page", "official website", "link", "url", "online information"
+#     ]
 
-    if any(keyword in question for keyword in programme_keywords):
-        return "programme"
-    if any(keyword in question for keyword in college_keywords):
-        return "college"
-    if any(keyword in question for keyword in pdf_keywords):
-        return "pdf"
-    if any(keyword in question for keyword in website_keywords):
-        return "website"
-    return "knowledge"
+#     if any(keyword in question for keyword in programme_keywords):
+#         return "programme"
+#     if any(keyword in question for keyword in college_keywords):
+#         return "college"
+#     if any(keyword in question for keyword in pdf_keywords):
+#         return "pdf"
+#     if any(keyword in question for keyword in website_keywords):
+#         return "website"
+#     return "knowledge"
 
 
 def build_response(user_question):
@@ -126,32 +126,127 @@ def build_response(user_question):
 
     #PDF 
     if query_type == "pdf":
-        answer = programme_response(user_question)
-        if answer:
-            return answer
-        
+        # prospectus_words = {
+        #   "prospectus",
+        #   "show prospectus",
+        #   "show me prospectus",
+        #   "view prospectus",
+        #   "open prospectus",
+        #   "prospectus pdf"
+        # }
+
+        question_lower = user_question.lower().strip()
+
+        if (
+            "prospectus" in question_lower
+            and not any(
+                word in question_lower
+                for word in ["page", "pages"]
+            )
+        ):
+            return (
+               "📄 <b>Cluster University of Srinagar – E-Prospectus</b>\n\n"
+               "The official university prospectus is available here.\n\n"
+               '🔗 <a href="/prospectus" target="_blank">View Prospectus</a>'
+            )
         pdf_result = search_pdf(user_question)
         print("PDF Time:", time.time() - start)
         if pdf_result:
-            pdf_name, page, chunk = pdf_result
-            return f"""
-📄 <b>{pdf_name}</b>
-<b>Page:</b> {page}
-{chunk[:1500]}
-"""
-        return "Information not found in official documents."
+           pdf_name, page, chunk = pdf_result
+           if pdf_name.lower() == "prospectus.pdf":
+              question_lower = user_question.lower()
+              import re
+              page_match = re.search(
+                r"\bpage\s*(?:no\.?|number)?\s*(\d+)\b",
+                question_lower
+              )
+              if page_match:
+                 requested_page = page_match.group(1)
+                 return (
+                    f"📄 <b>Cluster University of Srinagar – "
+                    f"E-Prospectus</b>\n\n"
+                    f"📑 <b>Page {requested_page}</b>\n\n"
+                    f"{chunk[:2000]}\n\n"
+                    f'🔗 <a href="/prospectus" target="_blank">'
+                    f"View Full Prospectus</a>"
+                )
 
-    #WEBSITE
+            # Normal prospectus question
+              return (
+                "📄 <b>Cluster University of Srinagar – "
+                "E-Prospectus</b>\n\n"
+                "The official university prospectus is available here.\n\n"
+                '🔗 <a href="/prospectus" target="_blank">'
+                "View Prospectus</a>"
+              )
+
+        # -------------------------------------------------
+        # Other official PDF documents
+        # -------------------------------------------------
+           return (
+            f"📄 <b>{pdf_name}</b>\n\n"
+            f"📑 <b>Page:</b> {page}\n\n"
+            f"{chunk[:2000]}"
+        )
+
+    # WEBSITE
     if query_type == "website":
         web_result = search_web_knowledge(user_question)
         print("Website Time:", time.time() - start)
+
         if web_result:
             college, title, url, chunk, chunk_no = web_result
+
             return f"""
 🌐 <b>{title}</b>
+
 {chunk[:1500]}
+
 <b>Source:</b>
-{url}
+<a href="{url}" target="_blank">{url}</a>
 """
+
         return "Information not available."
-    return "Sorry, I couldn't understand your question."
+
+    return (
+        "I couldn't find the requested information in the "
+        "available official documents."
+    )
+#     if query_type == "pdf":
+#         pdf_result = search_pdf(user_question)
+#         print("PDF Time:", time.time() - start)
+#         if pdf_result:
+#             pdf_name, page, chunk = pdf_result
+#             if pdf_name.lower() == "prospectus.pdf":
+#               return (
+#                  "📄 <b>Cluster University of Srinagar –  E-Prospectus</b>\n\n"
+#                  "The official university prospectus is  available here.\n\n"
+#                  '🔗 <a href="/prospectus" target="_blank">View Prospectus</a>'
+#               )
+
+#             return (
+#               f"📄 <b>{pdf_name}</b>\n\n"
+#               f"Official university document found.\n\n"
+#               f"📑 <b>Document:</b> {pdf_name}"
+#             )
+# #             return f"""
+# # 📄 <b>{pdf_name}</b>
+# # <b>Page:</b> {page}
+# # {chunk[:1500]}
+# # """
+#         return "I couldn't find the requested information in the available official documents."
+
+    #WEBSITE
+#     if query_type == "website":
+#         web_result = search_web_knowledge(user_question)
+#         print("Website Time:", time.time() - start)
+#         if web_result:
+#             college, title, url, chunk, chunk_no = web_result
+#             return f"""
+# 🌐 <b>{title}</b>
+# {chunk[:1500]}
+# <b>Source:</b>
+# {url}
+# """
+#         return "Information not available."
+#     return "Sorry, I couldn't understand your question."

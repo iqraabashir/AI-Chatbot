@@ -82,8 +82,40 @@ def detect_query_type(question):
         "circular",
         "circulars",
         "tender",
-        "news"
+        "news",
+        "official website",
+        "website"
     ]
+        # ---------------------------------------------------------
+    # CLEAR WEBSITE QUERIES
+    # ---------------------------------------------------------
+
+    website_query_phrases = [
+        "latest notification",
+        "latest notifications",
+        "current notification",
+        "current notifications",
+        "exam notification",
+        "exam notifications",
+        "latest exam notification",
+        "latest exam notifications",
+        "result notification",
+        "result notifications",
+        "latest result",
+        "latest results",
+        "current result",
+        "current results",
+        "official website",
+        "university website",
+        "university notifications",
+        "university results"
+    ]
+
+    if any(
+        phrase in question
+        for phrase in website_query_phrases
+    ):
+        return "website"
     # universityinfo
     university_keywords = [
         "university",
@@ -136,7 +168,7 @@ def detect_query_type(question):
        "ncc",
        "nss",
        "facilities",
-       "website",
+      #  "website",
        "google map",
        "email",
        
@@ -154,13 +186,27 @@ def detect_query_type(question):
        "gdc bemina",
        "iase"   
     ]
+    document_context = [
+    "prospectus",
+    "e-prospectus",
+    "official document",
+    "brochure",
+    "handbook",
+    "ordinance",
+    "regulation",
+    "policy",
+    "circular",
+    "notice"
+    ]
+    if any(x in question for x in document_context):
+      return "pdf"
     programme_fields = [
       "fee",
       "fees",
       "eligibility",
       "duration",
       "intake",
-      "admission",
+    #   "admission",
       "selection",
       "overview"
     ]
