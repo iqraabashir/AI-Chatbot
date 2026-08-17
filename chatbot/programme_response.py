@@ -8,6 +8,12 @@ from chatbot.programme_search import (
     search_all_matching_programmes
 )
 from chatbot.query_intents import *
+def programme_not_found_response():
+    return (
+        "I'm sorry, I couldn't find a matching programme "
+        "for your query. Please check the programme name "
+        "or subject and try again."
+    )
 
 def programme_response(question):
     print("Programme Module Called")
@@ -140,10 +146,11 @@ def programme_response(question):
             )
 
         if not matching_programmes:
-            return (
-                "I'm sorry, I couldn't find any "
-                "matching programme."
-            )
+            return programme_not_found_response()
+            # return (
+            #     "I'm sorry, I couldn't find any "
+            #     "matching programme."
+            # )
 
         colleges = []
         for p in matching_programmes:
@@ -221,7 +228,8 @@ def programme_response(question):
             question
         )
         if not programmes:
-            return "No matching programmes found."
+            return programme_not_found_response()
+            # return "No matching programmes found."
 
         answer = (
             f"📚 <b>Available Programmes "
@@ -298,23 +306,24 @@ def programme_response(question):
 
     programme = search_programmes(question)
     if programme is None:
-          return (
-            "I'm sorry, I couldn't find any "
-            "matching programme."
-          )
-    if contains_any(question, DEPARTMENT):
-          return (
-            f"📘 <b>{programme['programme']}"
-            f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"
-            f"<b>Department:</b> {programme['department']}"
-          )
+        return programme_not_found_response()
+        #   return (
+        #     "I'm sorry, I couldn't find any "
+        #     "matching programme."
+        #   )
+    # if contains_any(question, DEPARTMENT):
+    #       return (
+    #         f"📘 <b>{programme['programme']}"
+    #         f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"
+    #         f"<b>Department:</b> {programme['department']}"
+    #       )
     # DEPARTMENT QUERY
     if department_query:
 
-        programme = search_programmes(question)
+        # programme = search_programmes(question)
 
-        if programme is None:
-          return "I'm sorry, I couldn't find any matching programme."
+        # if programme is None:
+        #   return "I'm sorry, I couldn't find any matching programme."
 
         return (
           f"📘 <b>{programme['programme']}"
@@ -333,25 +342,6 @@ def programme_response(question):
         )
 
     response[0] += "</b>\n"
-    # if college_query:
-    #  colleges = []
-    #  for p in matching_programmes:
-    #   college = (
-    #     p["college"] or ""
-    #   ).strip()
-
-    #   if college and college not in colleges:
-    #     colleges.append(college)
-
-    #  if len(colleges) > 1:
-    #   response.append(
-    #     "<b>Colleges Offering:</b>\n" +
-    #     "\n".join(
-    #         f"🏛 {college}"
-    #         for college in colleges
-    #     )
-    #  )
-
     if contains_any(question, INTAKE):
         response.append(
             f"<b>Intake:</b> "
