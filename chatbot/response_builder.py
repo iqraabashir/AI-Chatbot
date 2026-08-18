@@ -11,6 +11,7 @@ from chatbot.knowledge_database import get_topic_fields, get_topic
 from chatbot.semantic_search import find_best_topic
 from chatbot.web_search import search_web_knowledge
 from chatbot.university_response import university_response
+from datetime import datetime
 
 def format_topic(topic_name):
     topic = get_topic(topic_name)
@@ -180,24 +181,125 @@ def build_response(user_question):
                 "View Prospectus</a>"
               )
 
-        # -------------------------------------------------
         # Other official PDF documents
-        # -------------------------------------------------
            return (
             f"📄 <b>{pdf_name}</b>\n\n"
             f"📑 <b>Page:</b> {page}\n\n"
             f"{chunk[:2000]}"
         )
 
-    # WEBSITE
+        # WEBSITE
     if query_type == "website":
         web_result = search_web_knowledge(user_question)
         print("Website Time:", time.time() - start)
+        if not web_result:
+            return "Information not available."
 
-        if web_result:
-            college, title, url, chunk, chunk_no = web_result
+        # STRUCTURED WEBSITE DATA
+        if isinstance(web_result, dict):
+            result_type = web_result.get("type")
+            items = web_result.get("items", [])
 
-            return f"""
+            # LATEST NOTIFICATIONS
+            if result_type == "notifications":
+                response = (
+                    "🔔 <b>Latest Notifications – "
+                    "Cluster University Srinagar</b>\n\n"
+                )
+                for item in items:
+                    item_type, title, item_date, url = item
+                    response += f"📌 <b>{title}</b>\n"
+                    if item_date:
+                        try:
+                            display_date = datetime.strptime(
+                              item_date,
+                              "%Y-%m-%d"
+                            ).strftime("%d-%B-%Y")
+                        except ValueError:
+                            display_date = item_date
+                        response += f"📅 {display_date}\n"
+
+                        # response += f"📅 {item_date}\n"
+                    if url:
+                        response += (
+                            f'🔗 <a href="{url}" target="_blank">'
+                            "View Notification</a>\n"
+                        )
+                    response += "\n"
+                response += (
+                    "🌐 <b>Source:</b> "
+                    '<a href="https://www.cusrinagar.edu.in/Notification/Notification" '
+                    'target="_blank">Official CUS Notification Section</a>'
+                )
+                return response
+
+            # EXAMINATION NOTIFICATIONS
+            if result_type == "exam_notifications":
+                response = (
+                    "📝 <b>Latest Examination Notifications – "
+                    "Cluster University Srinagar</b>\n\n"
+                )
+                for item in items:
+                    item_type, title, item_date, url = item
+                    response += f"📌 <b>{title}</b>\n"
+                    if item_date:   
+                        try:
+                            display_date = datetime.strptime(
+                               item_date,
+                               "%Y-%m-%d"
+                            ).strftime("%d-%B-%Y")
+                        except ValueError:
+                            display_date = item_date
+                        response += f"📅 {display_date}\n"
+                        #response += f"📅 {item_date}\n"
+                    if url:
+                        response += (
+                            f'🔗 <a href="{url}" target="_blank">'
+                            "View Notification</a>\n"
+                        )
+                    response += "\n"
+                response += (
+                    "🌐 <b>Source:</b> "
+                    '<a href="https://www.cusrinagar.edu.in/Notification/Notification" '
+                    'target="_blank">Official CUS Notification Section</a>'
+                )
+                return response
+    
+            # LATEST RESULTS
+            if result_type == "results":
+                response = (
+                    "📊 <b>Latest Results – "
+                    "Cluster University Srinagar</b>\n\n"
+                )
+                for item in items:
+                    item_type, title, item_date, url = item
+                    response += f"📌 <b>{title}</b>\n"
+                    if item_date:
+                        try:
+                            display_date = datetime.strptime(
+                                item_date,
+                                "%Y-%m-%d"
+                            ).strftime("%d-%B-%Y")
+                        except ValueError:
+                            display_date = item_date
+                        response += f"📅 {display_date}\n"
+
+                    if url:
+                        response += (
+                            f'🔗 <a href="{url}" target="_blank">'
+                            "View Result</a>\n"
+                        )
+                    response += "\n"
+                response += (
+                    "🌐 <b>Source:</b> "
+                    '<a href="https://www.cusrinagar.edu.in/Result/ResultNotification" '
+                    'target="_blank">Official CUS Results Section</a>'
+                )
+                return response
+
+        college, title, url, chunk, chunk_no = web_result
+
+        return f"""
 🌐 <b>{title}</b>
 
 {chunk[:1500]}
@@ -206,47 +308,7 @@ def build_response(user_question):
 <a href="{url}" target="_blank">{url}</a>
 """
 
-        return "Information not available."
-
     return (
         "I couldn't find the requested information in the "
         "available official documents."
     )
-#     if query_type == "pdf":
-#         pdf_result = search_pdf(user_question)
-#         print("PDF Time:", time.time() - start)
-#         if pdf_result:
-#             pdf_name, page, chunk = pdf_result
-#             if pdf_name.lower() == "prospectus.pdf":
-#               return (
-#                  "📄 <b>Cluster University of Srinagar –  E-Prospectus</b>\n\n"
-#                  "The official university prospectus is  available here.\n\n"
-#                  '🔗 <a href="/prospectus" target="_blank">View Prospectus</a>'
-#               )
-
-#             return (
-#               f"📄 <b>{pdf_name}</b>\n\n"
-#               f"Official university document found.\n\n"
-#               f"📑 <b>Document:</b> {pdf_name}"
-#             )
-# #             return f"""
-# # 📄 <b>{pdf_name}</b>
-# # <b>Page:</b> {page}
-# # {chunk[:1500]}
-# # """
-#         return "I couldn't find the requested information in the available official documents."
-
-    #WEBSITE
-#     if query_type == "website":
-#         web_result = search_web_knowledge(user_question)
-#         print("Website Time:", time.time() - start)
-#         if web_result:
-#             college, title, url, chunk, chunk_no = web_result
-#             return f"""
-# 🌐 <b>{title}</b>
-# {chunk[:1500]}
-# <b>Source:</b>
-# {url}
-# """
-#         return "Information not available."
-#     return "Sorry, I couldn't understand your question."

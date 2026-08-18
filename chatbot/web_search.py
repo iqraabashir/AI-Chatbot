@@ -1,6 +1,10 @@
 import sqlite3
+import re
 
 DATABASE_NAME = "chatbot/faq.db"
+
+OFFICIAL_WEBSITE = "https://www.cusrinagar.edu.in/"
+
 
 
 def search_web_knowledge(user_question):
@@ -22,97 +26,223 @@ def search_web_knowledge(user_question):
             "official university website"
         ]
     ):
-        cursor.execute("""
-            SELECT
-                college,
-                page_title,
-                url,
-                chunk_text,
-                chunk_no
-            FROM web_chunks
-            WHERE LOWER(url) = ?
-            LIMIT 1
-        """, (
-            "https://www.cusrinagar.edu.in/",
-        ))
 
-        row = cursor.fetchone()
+        conn.close()
 
-        if row:
-            conn.close()
-            return row
+        return (
+            "Cluster University Srinagar",
+            "Official Website",
+            OFFICIAL_WEBSITE,
+            "Visit the official website of Cluster University Srinagar.",
+            1
+        )
 
     # ---------------------------------------------------------
-    # RESULT QUERIES
+    # LATEST RESULTS
     # ---------------------------------------------------------
 
-    result_query = (
-        "result" in question
-        or "results" in question
-    )
-
-    if result_query:
+    if "result" in question or "results" in question:
 
         cursor.execute("""
             SELECT
-                college,
-                page_title,
-                url,
-                chunk_text,
-                chunk_no
-            FROM web_chunks
-            WHERE LOWER(page_title) LIKE '%result notification%'
-            ORDER BY
-                CASE
-                    WHEN LOWER(url) LIKE '%program=PG%' THEN 0
-                    WHEN LOWER(url) LIKE '%program=UG%' THEN 1
-                    WHEN LOWER(url) LIKE '%program=BED%' THEN 2
-                    WHEN LOWER(url) LIKE '%program=IH%' THEN 3
-                    ELSE 4
-                END
-            LIMIT 1
+                item_type,
+                title,
+                item_date,
+                url
+            FROM cus_website_items
+            WHERE item_type = 'result'
+            ORDER BY item_date DESC
+            LIMIT 5
         """)
 
-        row = cursor.fetchone()
+        rows = cursor.fetchall()
 
-        if row:
-            conn.close()
-            return row
+        conn.close()
+
+        if rows:
+
+            return {
+                "type": "results",
+                "items": rows
+            }
+
+        return None
 
     # ---------------------------------------------------------
-    # NOTIFICATION / EXAM NOTIFICATION QUERIES
+    # EXAMINATION NOTIFICATIONS
     # ---------------------------------------------------------
 
-    notification_query = (
+    if (
+        "exam notification" in question
+        or "exam notifications" in question
+        or "examination notification" in question
+        or "examination notifications" in question
+        or "exam notice" in question
+        or "examination notice" in question
+    ):
+
+        cursor.execute("""
+            SELECT
+                item_type,
+                title,
+                item_date,
+                url
+            FROM cus_website_items
+            WHERE item_type = 'notification'
+            AND (
+                LOWER(title) LIKE '%exam%'
+                OR LOWER(title) LIKE '%examination%'
+                OR LOWER(title) LIKE '%date sheet%'
+                OR LOWER(title) LIKE '%datesheet%'
+                OR LOWER(title) LIKE '%admit card%'
+                OR LOWER(title) LIKE '%admit cards%'
+                OR LOWER(title) LIKE '%examination form%'
+                OR LOWER(title) LIKE '%exam form%'
+            )
+            ORDER BY item_date DESC
+            LIMIT 5
+        """)
+
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        if rows:
+
+            return {
+                "type": "exam_notifications",
+                "items": rows
+            }
+
+        return None
+
+    # ---------------------------------------------------------
+    # LATEST NOTIFICATIONS
+    # ---------------------------------------------------------
+
+    if (
+        "latest notification" in question
+        or "latest notifications" in question
+        or "latest notice" in question
+        or "latest notices" in question
+        or question == "notification"
+        or question == "notifications"
+        or question == "notice"
+        or question == "notices"
+    ):
+
+        cursor.execute("""
+            SELECT
+                item_type,
+                title,
+                item_date,
+                url
+            FROM cus_website_items
+            WHERE item_type = 'notification'
+            ORDER BY item_date DESC
+            LIMIT 5
+        """)
+
+        rows = cursor.fetchall()
+
+        conn.close()
+
+        if rows:
+
+            return {
+                "type": "notifications",
+                "items": rows
+            }
+
+        return None
+
+    # ---------------------------------------------------------
+    # OTHER NOTIFICATION QUERIES
+    # ---------------------------------------------------------
+
+    if (
         "notification" in question
         or "notifications" in question
         or "notice" in question
         or "notices" in question
         or "circular" in question
         or "circulars" in question
-        or "latest" in question
-    )
+    ):
 
-    if notification_query:
+        words = re.findall(r"\b[a-zA-Z]+\b", question)
 
-        cursor.execute("""
-            SELECT
-                college,
-                page_title,
-                url,
-                chunk_text,
-                chunk_no
-            FROM web_chunks
-            WHERE LOWER(page_title) LIKE '%notification%'
-            AND LOWER(url) LIKE '%/Notification/Notification%'
-            LIMIT 1
-        """)
+        stop_words = {
+            "show",
+            "me",
+            "the",
+            "what",
+            "are",
+            "is",
+            "of",
+            "for",
+            "please",
+            "give",
+            "tell",
+            "about",
+            "find",
+            "latest",
+            "current",
+            "official",
+            "notification",
+            "notifications",
+            "notice",
+            "notices",
+            "circular",
+            "circulars"
+        }
 
-        row = cursor.fetchone()
+        words = [
+            word
+            for word in words
+            if word not in stop_words
+        ]
 
-        if row:
+        if words:
+
+            conditions = " AND ".join(
+                ["LOWER(title) LIKE ?" for _ in words]
+            )
+
+            parameters = [
+                f"%{word}%"
+                for word in words
+            ]
+
+            cursor.execute(
+                f"""
+                SELECT
+                    item_type,
+                    title,
+                    item_date,
+                    url
+                FROM cus_website_items
+                WHERE item_type = 'notification'
+                AND {conditions}
+                ORDER BY item_date DESC
+                LIMIT 5
+                """,
+                parameters
+            )
+
+            rows = cursor.fetchall()
+
             conn.close()
-            return row
+
+            if rows:
+
+                return {
+                    "type": "notifications",
+                    "items": rows
+                }
+
+        conn.close()
+
+        return None
 
     # ---------------------------------------------------------
     # GENERAL WEBSITE SEARCH
@@ -174,8 +304,10 @@ def search_web_knowledge(user_question):
         row = cursor.fetchone()
 
         if row:
+
             conn.close()
             return row
 
     conn.close()
+
     return None
