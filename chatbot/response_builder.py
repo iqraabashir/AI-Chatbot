@@ -264,7 +264,68 @@ def build_response(user_question):
                     'target="_blank">Official CUS Notification Section</a>'
                 )
                 return response
-    
+
+
+            if result_type == "admission_notifications":
+                response = (
+                    "🎓 <b>Latest Admission Notifications – "
+                    "Cluster University Srinagar</b>\n\n"
+                )
+                for item in items:
+                    item_type, title, item_date, url = item
+                    response += f"📌 <b>{title}</b>\n"
+                    if item_date:
+                      try:
+                         display_date = datetime.strptime(
+                         item_date,
+                         "%Y-%m-%d"
+                         ).strftime("%d-%B-%Y")
+                      except ValueError:
+                         display_date = item_date
+                      response += f"📅 {display_date}\n"
+                    if url:
+                        response += (
+                          f'🔗 <a href="{url}" target="_blank">'
+                          "View Notification</a>\n"
+                        )
+                    response += "\n"
+                response += (
+                  "🌐 <b>Source:</b> "
+                  '<a href="https://www.cusrinagar.edu.in/Notification/Notification" '
+                  'target="_blank">Official CUS Notification Section</a>'
+                )
+                return response
+
+            if result_type == "job_notifications":
+                response = (
+                "💼 <b>Latest Job Notifications – "
+                "Cluster University Srinagar</b>\n\n"
+                )
+                for item in items:
+                    item_type, title, item_date, url = item
+                    response += f"📌 <b>{title}</b>\n"
+                    if item_date:
+                        try:
+                            display_date = datetime.strptime(
+                                item_date,
+                                "%Y-%m-%d"
+                                ).strftime("%d-%B-%Y")
+                        except ValueError:
+                            display_date = item_date
+                        response += f"📅 {display_date}\n"
+                    if url:
+                        response += (
+                        f'🔗 <a href="{url}" target="_blank">'
+                        "View Notification</a>\n"
+                        )
+                    response += "\n"
+                response += (
+                       "🌐 <b>Source:</b> "
+                       '<a href="https://www.cusrinagar.edu.in/Notification/Notification" '
+                       'target="_blank">Official CUS Notification Section</a>'
+                )
+                return response
+
             # LATEST RESULTS
             if result_type == "results":
                 response = (

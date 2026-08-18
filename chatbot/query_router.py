@@ -86,10 +86,8 @@ def detect_query_type(question):
         "official website",
         "website"
     ]
-        # ---------------------------------------------------------
-    # CLEAR WEBSITE QUERIES
-    # ---------------------------------------------------------
 
+    # CLEAR WEBSITE QUERIES
     website_query_phrases = [
         "latest notification",
         "latest notifications",
@@ -108,7 +106,23 @@ def detect_query_type(question):
         "official website",
         "university website",
         "university notifications",
-        "university results"
+        "university results",
+        "admission notification",
+        "admission notifications",
+        "latest admission notification",
+        "latest admission notifications",
+        "current admission notification",
+        "current admission notifications",
+        "job notification",
+        "job notifications",
+        "latest job notification",
+        "latest job notifications",
+        "current job notification",
+        "current job notifications",
+        "employment notification",
+        "employment notifications",
+        "latest jobs",
+        "latest job"
     ]
 
     if any(

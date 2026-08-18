@@ -117,9 +117,84 @@ def search_web_knowledge(user_question):
         return None
 
     # ---------------------------------------------------------
-    # LATEST NOTIFICATIONS
-    # ---------------------------------------------------------
+# ADMISSION NOTIFICATIONS
+# ---------------------------------------------------------
 
+    if (
+        "admission notification" in question
+        or "admission notifications" in question
+        or "admission notice" in question
+        or "admission notices" in question
+        or "latest admission" in question
+    ):
+
+        cursor.execute("""
+          SELECT
+             item_type,
+             title,
+             item_date,
+             url
+          FROM cus_website_items
+          WHERE item_type = 'notification'
+          AND (
+             LOWER(title) LIKE '%admission%'
+             OR LOWER(title) LIKE '%admissions%'
+          )
+          ORDER BY item_date DESC
+          LIMIT 5
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+        if rows:
+          return {
+             "type": "admission_notifications",
+             "items": rows
+          }
+        return None
+
+# ---------------------------------------------------------
+# JOB NOTIFICATIONS
+# ---------------------------------------------------------
+
+    if (
+        "job notification" in question
+        or "job notifications" in question
+        or "job notice" in question
+        or "job notices" in question
+        or "latest jobs" in question
+        or "latest job" in question
+        or "employment notification" in question
+        or "employment notifications" in question
+    ):
+
+        cursor.execute("""
+          SELECT
+             item_type,
+             title,
+             item_date,
+             url
+          FROM cus_website_items
+          WHERE item_type = 'notification'
+          AND (
+             LOWER(title) LIKE '%job%'
+             OR LOWER(title) LIKE '%employment%'
+             OR LOWER(title) LIKE '%recruitment%'
+             OR LOWER(title) LIKE '%appointment%'
+             OR LOWER(title) LIKE '%interview%'
+          )
+          ORDER BY item_date DESC
+          LIMIT 5
+        """)
+        rows = cursor.fetchall()
+        conn.close()
+        if rows:
+           return {
+             "type": "job_notifications",
+             "items": rows
+           }
+        return None
+
+    # LATEST NOTIFICATIONS
     if (
         "latest notification" in question
         or "latest notifications" in question
@@ -156,10 +231,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-    # ---------------------------------------------------------
     # OTHER NOTIFICATION QUERIES
-    # ---------------------------------------------------------
-
     if (
         "notification" in question
         or "notifications" in question
@@ -168,9 +240,7 @@ def search_web_knowledge(user_question):
         or "circular" in question
         or "circulars" in question
     ):
-
         words = re.findall(r"\b[a-zA-Z]+\b", question)
-
         stop_words = {
             "show",
             "me",
@@ -228,13 +298,9 @@ def search_web_knowledge(user_question):
                 """,
                 parameters
             )
-
             rows = cursor.fetchall()
-
             conn.close()
-
             if rows:
-
                 return {
                     "type": "notifications",
                     "items": rows
