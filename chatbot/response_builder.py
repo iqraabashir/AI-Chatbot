@@ -3,6 +3,7 @@ import time
 import chatbot.query_router as qr
 
 from chatbot.college_response import college_response
+from chatbot.general_admission import get_general_admission_response
 from chatbot.programme_search import search_programmes
 
 from chatbot.pdf_search import search_pdf
@@ -53,40 +54,27 @@ def format_topic(topic_name):
             response += f"{field_dict[item]}\n\n"
     return response
 
-# def detect_query_type(user_question):
-#     question = user_question.lower()
-#     programme_keywords = [
-#         "programme", "program", "course", "degree", "admission", "eligibility",
-#         "fee", "duration", "semester", "curriculum", "syllabus", "selection process"
-#     ]
-#     college_keywords = [
-#         "college", "university", "campus", "hostel", "faculty", "department", "departments",
-#         "infrastructure", "ranking", "location"
-#     ]
-#     pdf_keywords = [
-#         "pdf", "document", "official document", "brochure", "prospectus",
-#         "handbook", "notice", "circular", "regulation"
-#     ]
-#     website_keywords = [
-#         "website", "web page", "official website", "link", "url", "online information"
-#     ]
-
-#     if any(keyword in question for keyword in programme_keywords):
-#         return "programme"
-#     if any(keyword in question for keyword in college_keywords):
-#         return "college"
-#     if any(keyword in question for keyword in pdf_keywords):
-#         return "pdf"
-#     if any(keyword in question for keyword in website_keywords):
-#         return "website"
-#     return "knowledge"
-
-
 def build_response(user_question):
     print("\n===== RESPONSE BUILDER =====")
     print("Question:", user_question)
     start = time.time()
     query_type = qr.detect_query_type(user_question)
+    
+    general_admission_response = get_general_admission_response(
+    user_question
+    )
+    if general_admission_response:
+       print("General Admission Time:", time.time() - start)
+       return general_admission_response
+        # SYLLABUS
+    if "syllabus" in user_question.lower():
+        return (
+            "📚 <b>University Syllabus</b><br><br>"
+            "You can view the official Cluster University Srinagar "
+            "syllabus here:<br><br>"
+            '<a href="https://www.cusrinagar.edu.in/Syllabus/Index/True?pp=UG" '
+            'target="_blank">📖 View Official Syllabus</a>'
+        )
 
 # universityinfo
     if query_type == "university":
@@ -127,17 +115,7 @@ def build_response(user_question):
 
     #PDF 
     if query_type == "pdf":
-        # prospectus_words = {
-        #   "prospectus",
-        #   "show prospectus",
-        #   "show me prospectus",
-        #   "view prospectus",
-        #   "open prospectus",
-        #   "prospectus pdf"
-        # }
-
         question_lower = user_question.lower().strip()
-
         if (
             "prospectus" in question_lower
             and not any(

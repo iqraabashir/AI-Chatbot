@@ -1,7 +1,7 @@
-
 def detect_query_type(question):
     question = question.lower()
     print(question)
+
     if "integrated" in question:    
         return "programme"
 
@@ -23,8 +23,10 @@ def detect_query_type(question):
 
     # Programme information
       "eligibility","fee","fees","intake","seat","seats",
-      "duration","selection","admission",
-      "admission process","selection process",
+      "duration","selection",
+    #   "admission",
+    #   "admission process",
+    #   "selection process",
       "cuet",
       "study",
       "studied",
@@ -134,6 +136,8 @@ def detect_query_type(question):
     university_keywords = [
         "university",
         "cluster university",
+        "cus",
+        "cus srinagar",
         "university mission",
         "university vision",
         "university name",
@@ -239,6 +243,22 @@ def detect_query_type(question):
     if "integrated" in question:
         return "programme"
     print("programme_keywords", programme_keywords)
+        # GENERAL SUBJECT QUESTIONS
+    subject_question_starts = [
+        "what is ",
+        "what are ",
+        "tell me about ",
+        "about ",
+        "information about ",
+        "information on "
+    ]
+
+    if any(
+        question.startswith(phrase)
+        for phrase in subject_question_starts
+    ):
+        return "programme"
+    print("programme_keywords", programme_keywords)
   
     for word in programme_keywords:
         if word in question:
@@ -251,5 +271,16 @@ def detect_query_type(question):
     for word in website_keywords:
         if word in question:
             return "website"
+        # spellcheck
+    if (
+        question.startswith("what is ")
+        or question.startswith("what are ")
+        or question.startswith("tell me about ")
+        or question.startswith("about ")
+        or question.startswith("information about ")
+        or question.startswith("information on ")
+    ):
+        return "programme"
+    # yehan tak
 
     return "knowledge"

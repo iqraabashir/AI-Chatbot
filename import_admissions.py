@@ -1,34 +1,55 @@
 from openpyxl import load_workbook
-from chatbot.knowledge_database import add_topic, add_field, add_value
+import sqlite3
 
-workbook = load_workbook("data/official_data/knowledge/admissions.xlsx")
+DATABASE = "chatbot/knowledge.db"
+
+conn = sqlite3.connect(DATABASE)
+cursor = conn.cursor()
+
+workbook = load_workbook(
+    "data/official_data/knowledge/admissions.xlsx"
+)
+
 sheet = workbook.active
 
-
-topics = {}
+count = 0
 
 for row in sheet.iter_rows(min_row=2, values_only=True):
 
-    topic_name, field_name, field_value, source, url, last_updated = row
+    if row[0] is None:
+        continue
 
-    if topic_name not in topics:
-        topic_id = add_topic(
-            topic_name,
-            "Admissions",
-            f"{topic_name} information"
-        )
-        topics[topic_name] = topic_id
+    cursor.execute("""
 
-    topic_id = topics[topic_name]
+    INSERT INTO admissions(
 
-    field_id = add_field(topic_id, field_name)
-
-    add_value(
-        field_id,
-        field_value,
+        category,
+        topic,
+        applicable_to,
+        description,
+        required_documents,
+        eligibility_basis,
+        admission_mode,
+        selection_basis,
+        reservation,
+        application_fee,
+        admission_portal,
+        important_notes,
         source,
         url,
-        str(last_updated)
-    )
+        last_updated,
+        keywords,
+        question_examples,
+        programme_level
 
-print("Admissions Imported Successfully!")
+    )
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+    """, row)
+
+    count += 1
+
+conn.commit()
+conn.close()
+
+print(f"{count} Admission Records Imported Successfully.")

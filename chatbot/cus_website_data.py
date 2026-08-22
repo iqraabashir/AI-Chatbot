@@ -82,21 +82,22 @@ def save_item(item_type, title, item_date, url):
 
 
 def fetch_notifications():
-
     response = requests.get(
         NOTIFICATION_URL,
         headers=HEADERS,
         timeout=20
     )
-
     response.raise_for_status()
-
     soup = BeautifulSoup(
         response.text,
         "lxml"
     )
-    clear_cus_website_items("notification")
     rows = soup.find_all("tr")
+    if not rows:
+        raise RuntimeError(
+          "CUS notification page returned no notification rows."
+        )
+    clear_cus_website_items("notification")
     count = 0
     for row in rows:
         cells = row.find_all("td")
@@ -129,33 +130,27 @@ def fetch_notifications():
     return count
 
 def fetch_results():
-
     response = requests.get(
         RESULT_URL,
         headers=HEADERS,
         timeout=20
     )
-
     response.raise_for_status()
-
     soup = BeautifulSoup(
         response.text,
         "lxml"
     )
-
-    clear_cus_website_items("result")
-
     rows = soup.find_all("tr")
-
+    if not rows:
+     raise RuntimeError(
+         "CUS result page returned no result rows."
+    )
+    clear_cus_website_items("result")
     count = 0
-
     for row in rows:
-
         cells = row.find_all("td")
-
         if len(cells) < 4:
             continue
-
         title = cells[1].get_text(
             " ",
             strip=True

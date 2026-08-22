@@ -1,35 +1,19 @@
-# 
 import sqlite3
 import re
-
 DATABASE_NAME = "chatbot/faq.db"
-
-
 def search_pdf(user_question):
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
-
     question = user_question.lower().strip()
-
-    # -------------------------------------------------
     # 1. Detect requested page number
-    # -------------------------------------------------
     page_match = re.search(
         r"\bpage\s*(?:no\.?|number)?\s*(\d+)\b",
         question
     )
-
     requested_page = None
-
     if page_match:
         requested_page = int(page_match.group(1))
-
-    # -------------------------------------------------
-    # 2. If a specific page was requested,
-    #    search that exact page first
-    # -------------------------------------------------
     if requested_page is not None:
-
         cursor.execute("""
             SELECT
                 pdf_name,
@@ -47,10 +31,6 @@ def search_pdf(user_question):
             conn.close()
             return row
 
-    # -------------------------------------------------
-    # 3. Remove generic PDF words
-    #    so we search meaningful terms
-    # -------------------------------------------------
     stop_words = {
         "show",
         "me",
@@ -89,9 +69,6 @@ def search_pdf(user_question):
         and len(word) > 2
     ]
 
-    # -------------------------------------------------
-    # 4. Search using meaningful words
-    # -------------------------------------------------
     best_result = None
     best_score = 0
 

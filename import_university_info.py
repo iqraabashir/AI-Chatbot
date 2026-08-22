@@ -10,6 +10,7 @@ cursor = conn.cursor()
 
 workbook = load_workbook(EXCEL_FILE)
 sheet = workbook.active
+cursor.execute("DELETE FROM university_info")
 
 count = 0
 

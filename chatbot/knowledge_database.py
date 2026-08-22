@@ -1,15 +1,10 @@
 import sqlite3
-
 DATABASE_NAME = "chatbot/knowledge.db"
-
-
 def get_connection():
     return sqlite3.connect(DATABASE_NAME)
-
 def create_tables():
     conn = get_connection()
     cursor = conn.cursor()
-
     # Stores every main topic
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_topics(
@@ -19,7 +14,6 @@ def create_tables():
             description TEXT
         )
     """)
-
     # Stores fields related to a topic
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_fields(
@@ -29,7 +23,6 @@ def create_tables():
             FOREIGN KEY(topic_id) REFERENCES knowledge_topics(topic_id)
         )
     """)
-
     # Stores the actual values
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_values(

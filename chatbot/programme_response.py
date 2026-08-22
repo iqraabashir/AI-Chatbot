@@ -7,6 +7,9 @@ from chatbot.programme_search import (
     search_subject_overview,
     search_all_matching_programmes
 )
+from chatbot.general_admission import get_general_admission_response
+# spellcheck
+from chatbot.spellcheck import find_closest_subject
 from chatbot.query_intents import *
 def programme_not_found_response():
     return (
@@ -18,7 +21,14 @@ def programme_not_found_response():
 def programme_response(question):
     print("Programme Module Called")
     print("PROGRAMME RESPONSE QUESTION:", repr(question))
-    question = question.lower().strip()
+    # GENERAL ADMISSION INFORMATION
+    general_admission_response = (
+        get_general_admission_response(question)
+    )
+    if general_admission_response:
+        return general_admission_response
+    
+    question = question.lower().strip()  
     college_query = (
         "which college" in question
         or "which colleges" in question
@@ -281,6 +291,11 @@ def programme_response(question):
     )
     generic_subject_query = (
       question == "it"
+      #spellcheck
+      or question.startswith("what is ")
+      or question.startswith("what are ")
+      or question.startswith("information on ")
+
       or question.startswith( "tell me about")
       or question.startswith("about") 
       or question.startswith("information about")
@@ -289,14 +304,39 @@ def programme_response(question):
     if generic_subject_query and not specific_programme_query:
         subject_query = question
         subject_query = re.sub(
-           r"^(tell me about|information about|about)\s+",
+           r"^(what is|what are|information on|tell me about|information about|about)\s+",
            "",
             subject_query
         ).strip()
+
+        #spellcheck
+        print(
+            "GENERAL SUBJECT QUERY:",
+            subject_query
+        )
+        print(
+            "SUBJECT OVERVIEW SEARCH:",
+             repr(subject_query)
+        )
       
         subject_result = search_subject_overview(
             subject_query
         )
+
+        #spellcheck
+        if subject_result is None:
+
+            matched_subject, _ = find_closest_subject(
+                    subject_query,
+                    # threshold=0.70
+                )
+        
+            if matched_subject:
+
+                subject_result = search_subject_overview(
+                    matched_subject
+                )
+            #yehan tak
 
         if subject_result:
          return (
@@ -307,24 +347,9 @@ def programme_response(question):
     programme = search_programmes(question)
     if programme is None:
         return programme_not_found_response()
-        #   return (
-        #     "I'm sorry, I couldn't find any "
-        #     "matching programme."
-        #   )
-    # if contains_any(question, DEPARTMENT):
-    #       return (
-    #         f"📘 <b>{programme['programme']}"
-    #         f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"
-    #         f"<b>Department:</b> {programme['department']}"
-    #       )
+
     # DEPARTMENT QUERY
     if department_query:
-
-        # programme = search_programmes(question)
-
-        # if programme is None:
-        #   return "I'm sorry, I couldn't find any matching programme."
-
         return (
           f"📘 <b>{programme['programme']}"
           f"{' - ' + programme['specialization'] if programme['specialization'] else ''}</b>\n\n"

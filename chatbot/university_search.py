@@ -2,25 +2,17 @@ import sqlite3
 import re
 
 DATABASE_NAME = "chatbot/knowledge.db"
-
 LAST_UNIVERSITY_RECORD = None
-
-
 def search_university(question):
-
     conn = sqlite3.connect(DATABASE_NAME)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-
     cursor.execute("""
         SELECT *
         FROM university_info
     """)
-
     records = cursor.fetchall()
-
     conn.close()
-
     question = (question or "").lower().strip()
 
     # Remove punctuation
@@ -110,12 +102,9 @@ def search_university(question):
             best = record
 
     global LAST_UNIVERSITY_RECORD
-
     if best:
         LAST_UNIVERSITY_RECORD = best
-
     return best
-
 
 def get_last_university_record():
 

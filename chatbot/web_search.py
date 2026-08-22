@@ -2,10 +2,10 @@ import sqlite3
 import re
 
 DATABASE_NAME = "chatbot/faq.db"
-
 OFFICIAL_WEBSITE = "https://www.cusrinagar.edu.in/"
-
-
+SYLLABUS_URL = (
+    "https://www.cusrinagar.edu.in/Syllabus/Index/True?pp=UG"
+)
 
 def search_web_knowledge(user_question):
 
@@ -13,11 +13,22 @@ def search_web_knowledge(user_question):
     cursor = conn.cursor()
 
     question = user_question.lower().strip()
+    # OFFICIAL SYLLABUS
+    if (
+        "syllabus" in question
+        or "syllabi" in question
+    ):
+        conn.close()
+        return (
+            "Cluster University Srinagar",
+            "Official CUS Syllabus",
+            SYLLABUS_URL,
+            "View the official CUS syllabus section to find "
+            "the required programme, subject and semester syllabus.",
+            1
+        )
 
-    # ---------------------------------------------------------
     # OFFICIAL UNIVERSITY WEBSITE
-    # ---------------------------------------------------------
-
     if (
         "official website" in question
         or question in [
@@ -37,12 +48,191 @@ def search_web_knowledge(user_question):
             1
         )
 
-    # ---------------------------------------------------------
-    # LATEST RESULTS
-    # ---------------------------------------------------------
+    if (
+        "result" in question
+        or "results" in question
+        or "date sheet" in question
+        or "datesheet" in question
+        or "date-sheet" in question
+    ):
 
-    if "result" in question or "results" in question:
+        if (
+            "date sheet" in question
+            or "datesheet" in question
+            or "date-sheet" in question
+        ):
+            words = re.findall(
+                r"\b[a-zA-Z0-9]+\b",
+                question
+            )
+            stop_words = {
+                "show",
+                "me",
+                "the",
+                "what",
+                "is",
+                "are",
+                "latest",
+                "current",
+                "official",
+                "date",
+                "sheet",
+                "datesheet",
+                "date-sheet",
+                "of",
+                "for",
+                "please",
+                "give",
+                "tell",
+                "about",
+                "find"
+            }
 
+            words = [
+                word
+                for word in words
+                if word not in stop_words
+            ]
+
+            if words:
+
+                conditions = " AND ".join(
+                    [
+                        "LOWER(REPLACE(title, '.', '')) LIKE ?"
+                        for _ in words
+                    ]
+                )
+
+                parameters = [
+                    f"%{word}%"
+                    for word in words
+                ]
+
+                cursor.execute(
+                    f"""
+                    SELECT
+                        item_type,
+                        title,
+                        item_date,
+                        url
+                    FROM cus_website_items
+                    WHERE item_type = 'notification'
+                    AND (
+                        LOWER(title) LIKE '%date sheet%'
+                        OR LOWER(title) LIKE '%datesheet%'
+                        OR LOWER(title) LIKE '%date-sheet%'
+                    )
+                    AND {conditions}
+                    ORDER BY item_date DESC
+                    LIMIT 5
+                    """,
+                    parameters
+                )
+                rows = cursor.fetchall()
+                if rows:
+                    conn.close()
+                    return {
+                        "type": "exam_notifications",
+                        "items": rows
+                    }
+
+            cursor.execute("""
+                SELECT
+                    item_type,
+                    title,
+                    item_date,
+                    url
+                FROM cus_website_items
+                WHERE item_type = 'notification'
+                AND (
+                    LOWER(title) LIKE '%date sheet%'
+                    OR LOWER(title) LIKE '%datesheet%'
+                    OR LOWER(title) LIKE '%date-sheet%'
+                )
+                ORDER BY item_date DESC
+                LIMIT 5
+            """)
+
+            rows = cursor.fetchall()
+
+            conn.close()
+
+            if rows:
+                return {
+                    "type": "exam_notifications",
+                    "items": rows
+                }
+
+            return None
+
+        words = re.findall(
+            r"\b[a-zA-Z0-9]+\b",
+            question
+        )
+
+        stop_words = {
+            "show",
+            "me",
+            "the",
+            "what",
+            "is",
+            "are",
+            "latest",
+            "current",
+            "official",
+            "result",
+            "results",
+            "of",
+            "for",
+            "please",
+            "give",
+            "tell",
+            "about",
+            "find"
+        }
+
+        words = [
+            word
+            for word in words
+            if word not in stop_words
+        ]
+
+        if words:
+            conditions = " AND ".join(
+                [
+                    "LOWER(REPLACE(title, '.', '')) LIKE ?"
+                    for _ in words
+                ]
+            )
+            parameters = [
+                f"%{word}%"
+                for word in words
+            ]
+            cursor.execute(
+                f"""
+                SELECT
+                    item_type,
+                    title,
+                    item_date,
+                    url
+                FROM cus_website_items
+                WHERE item_type = 'result'
+                AND {conditions}
+                ORDER BY item_date DESC
+                LIMIT 5
+                """,
+                parameters
+            )
+
+            rows = cursor.fetchall()
+
+            if rows:
+                conn.close()
+
+                return {
+                    "type": "results",
+                    "items": rows
+                }
         cursor.execute("""
             SELECT
                 item_type,
@@ -54,24 +244,15 @@ def search_web_knowledge(user_question):
             ORDER BY item_date DESC
             LIMIT 5
         """)
-
         rows = cursor.fetchall()
-
         conn.close()
-
         if rows:
-
             return {
                 "type": "results",
                 "items": rows
             }
-
         return None
-
-    # ---------------------------------------------------------
     # EXAMINATION NOTIFICATIONS
-    # ---------------------------------------------------------
-
     if (
         "exam notification" in question
         or "exam notifications" in question
@@ -116,10 +297,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-    # ---------------------------------------------------------
 # ADMISSION NOTIFICATIONS
-# ---------------------------------------------------------
-
     if (
         "admission notification" in question
         or "admission notifications" in question
@@ -152,10 +330,7 @@ def search_web_knowledge(user_question):
           }
         return None
 
-# ---------------------------------------------------------
 # JOB NOTIFICATIONS
-# ---------------------------------------------------------
-
     if (
         "job notification" in question
         or "job notifications" in question
@@ -310,10 +485,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-    # ---------------------------------------------------------
     # GENERAL WEBSITE SEARCH
-    # ---------------------------------------------------------
-
     words = question.split()
 
     stop_words = {
@@ -340,18 +512,14 @@ def search_web_knowledge(user_question):
         for word in words
         if word not in stop_words
     ]
-
     if words:
-
         conditions = " AND ".join(
             ["LOWER(chunk_text) LIKE ?" for _ in words]
         )
-
         parameters = [
             f"%{word}%"
             for word in words
         ]
-
         cursor.execute(
             f"""
             SELECT
@@ -366,14 +534,9 @@ def search_web_knowledge(user_question):
             """,
             parameters
         )
-
         row = cursor.fetchone()
-
         if row:
-
             conn.close()
             return row
-
     conn.close()
-
     return None
