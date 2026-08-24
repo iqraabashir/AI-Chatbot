@@ -13,7 +13,7 @@ def search_web_knowledge(user_question):
     cursor = conn.cursor()
 
     question = user_question.lower().strip()
-    # OFFICIAL SYLLABUS
+   
     if (
         "syllabus" in question
         or "syllabi" in question
@@ -28,7 +28,7 @@ def search_web_knowledge(user_question):
             1
         )
 
-    # OFFICIAL UNIVERSITY WEBSITE
+  
     if (
         "official website" in question
         or question in [
@@ -252,7 +252,7 @@ def search_web_knowledge(user_question):
                 "items": rows
             }
         return None
-    # EXAMINATION NOTIFICATIONS
+    
     if (
         "exam notification" in question
         or "exam notifications" in question
@@ -297,7 +297,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-# ADMISSION NOTIFICATIONS
+
     if (
         "admission notification" in question
         or "admission notifications" in question
@@ -330,7 +330,7 @@ def search_web_knowledge(user_question):
           }
         return None
 
-# JOB NOTIFICATIONS
+
     if (
         "job notification" in question
         or "job notifications" in question
@@ -369,7 +369,6 @@ def search_web_knowledge(user_question):
            }
         return None
 
-    # LATEST NOTIFICATIONS
     if (
         "latest notification" in question
         or "latest notifications" in question
@@ -406,7 +405,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-    # OTHER NOTIFICATION QUERIES
+  
     if (
         "notification" in question
         or "notifications" in question
@@ -485,7 +484,7 @@ def search_web_knowledge(user_question):
 
         return None
 
-    # GENERAL WEBSITE SEARCH
+  
     words = question.split()
 
     stop_words = {

@@ -6,9 +6,14 @@ from chatbot.cus_website_data import (
     fetch_notifications,
     fetch_results
 )
-
+from chatbot.translation import (
+    translate_to_english,
+    translate_from_english
+)
+from dotenv import load_dotenv
+load_dotenv()
 app = Flask(__name__)
-app.secret_key = "cluster_university_secret_key"
+app.secret_key = os.getenv("SECRET_KEY")
 from admin import admin
 app.register_blueprint(admin)
 
@@ -18,16 +23,39 @@ def home():
 
 @app.route("/get_response", methods=["POST"])
 def chatbot_response():
-    print("Received request for chatbot response")
+    print("========== TRANSLATION ROUTE ==========")
     data = request.get_json()
     print(f"Request data: {data}")
     user_message = data["message"]
-    bot_reply = get_response(user_message)
-    print(f"Bot reply: {bot_reply}")
-    return jsonify({
-        "response": bot_reply
-    })
+    language = data.get("language", "en")
+    try:
+        english_message = translate_to_english(
+            user_message,
+            language
+          )
+
+        print("========== BEFORE CHATBOT ==========")
+        print("Original question:", user_message) 
+        print("English question:", english_message)
+
+        bot_reply = get_response(english_message)
+        translated_reply = translate_from_english(
+           bot_reply,
+           language
+          )
+
+    except Exception as e:
+        print("Translation error:", e)
     
+        translated_reply = (
+            "Sorry, I’m unable to process " "your request in this language right now. " 
+            "Please try again or use English."
+           )
+    print(f"Bot reply: {translated_reply}")
+    return jsonify({
+       "response": translated_reply
+    })
+ 
 @app.route("/prospectus")
 def prospectus():
     pdf_directory = os.path.join(

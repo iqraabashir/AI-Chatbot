@@ -411,30 +411,29 @@ def programme_response(question):
     if len(response) > 1:
         return "\n\n".join(response)
 
-    return f"""
-📘 {programme['programme']}{"-" + programme['specialization'] if programme['specialization'] else ""}
+    return f"""📘{programme['programme']}{"-" + programme['specialization'] if programme['specialization'] else ""}
 
-Programme Level: {programme['level']}
+<b>Programme Level</b>: {programme['level']}
 
-College: {programme['college']}
+<b>College</b>: {programme['college']}
 
-Department: {programme['department']}
+<b>Department</b>: {programme['department']}
 
-Duration: {programme['duration']}
+<b>Duration</b>: {programme['duration']}
 
-Eligibility: {programme['eligibility']}
+<b>Eligibility</b>: {programme['eligibility']}
 
-Intake: {programme['intake']}
+<b>Intake</b>: {programme['intake']}
 
-Fee: {programme['fee']}
+<b>Fee</b>: {programme['fee']}
 
-Admission Process: {programme['admission_process']}
+<b>Admission Process</b>: {programme['admission_process']}
 
-Selection Process: {programme['selection_process']}
+<b>Selection Process</b>: {programme['selection_process']}
 
-Overview: {programme['subject_overview'] or programme['overview']}
+<b>Overview</b>: {programme['subject_overview'] or programme['overview']}
 
-School: {programme['school']}
+<b>School</b>: {programme['school']}
 
-Campus: {programme['campus']}
+<b>Campus</b>: {programme['campus']}
 """

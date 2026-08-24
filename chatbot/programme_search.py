@@ -334,6 +334,7 @@ def make_unique(programmes):
             (p["programme"] or "").strip().lower(),
             (p["specialization"] or "").strip().lower(),
             (p["level"] or "").strip().lower(),
+            (p["duration"] or "").strip().lower(),
             (p["college"] or "").strip().lower(),
             (p["department"] or "").strip().lower()
         )
@@ -350,9 +351,75 @@ def normalize_programme_name(text):
     text = re.sub(r"\bbsc\s+bed\b", "bsc bed", text)
     return re.sub(r"\s+", " ", text).strip()
 
+def detect_requested_duration(question):
+    """
+    Detect whether the user explicitly requested
+    a 1-year or 2-year programme.
+
+    Returns:
+        "1 year"
+        "2 years"
+        None
+    """
+
+    question = normalize_question(question)
+
+    # 1 year variations
+    if re.search(
+        r"\b(1|one)\s*-?\s*year\b",
+        question
+    ):
+        return "1 year"
+
+    # 2 year variations
+    if re.search(
+        r"\b(2|two)\s*-?\s*years?\b",
+        question
+    ):
+        return "2 years"
+
+    return None
+
+
+def duration_matches(requested_duration, database_duration):
+    """
+    Check whether the requested duration matches
+    the duration stored in the database.
+    """
+
+    if not requested_duration:
+        return True
+
+    database_duration = (
+        database_duration or ""
+    ).lower().strip()
+
+    if requested_duration == "1 year":
+        return bool(
+            re.search(
+                r"\b1\s*year\b",
+                database_duration
+            )
+        )
+
+    if requested_duration == "2 years":
+        return bool(
+            re.search(
+                r"\b2\s*years?\b",
+                database_duration
+            )
+        )
+
+    return True
+
 def search_programmes(user_question):
     global LAST_PROGRAMME
     question = normalize_question(user_question)
+    requested_duration = detect_requested_duration(question)
+    print(
+        "REQUESTED DURATION:",
+        requested_duration
+    )
     # spellcheck
     original_question = question
 
@@ -425,33 +492,29 @@ def search_programmes(user_question):
         programme_name = normalize_programme_name(
             p["programme"] or ""
         )
-        # ) .lower().strip()
-        # new
-        # normalized_programme = normalize_programme_name(programme_name)
-
         specialization = normalize_question(
             p["specialization"] or ""
         )
-        # ) .lower().strip()
-
         college = normalize_question(
             p["college"] or ""
         )
-
         department =  normalize_question(
            p["department"] or ""
         )
-        # .lower().strip() 
-
-        # school = (
-        #     p["school"] or ""
-        # ).lower().strip()
-
         level = normalize_question (
             p["level"] or ""
         )
-        programme_key = programme_name.replace(" ", "")
+        duration = normalize_question(
+            p["duration"] or ""
+        )
+        if requested_duration:
+            if not duration_matches(
+                requested_duration,
+                duration
+            ):
+                continue
 
+        programme_key = programme_name.replace(" ", "")
         if programme_key in ["msc", "m.sc"]:
             programme_key = "msc"
         
@@ -519,6 +582,13 @@ def search_programmes(user_question):
                 continue
 
         score = 0
+        if requested_duration:
+            if duration_matches(
+                requested_duration,
+                duration
+            ):
+                score += 3000
+
         question_key = question.replace(" ", "")
         if programme_key and programme_key in question_key:
             score += 10000
@@ -621,6 +691,14 @@ def search_programmes(user_question):
 def search_all_matching_programmes(user_question):
     question = normalize_question(user_question)
     words = get_words(question)
+    requested_duration = detect_requested_duration(
+        question
+    )
+
+    print(
+        "REQUESTED DURATION:",
+        requested_duration
+    )
     programmes = get_all_programmes()
     matches = []
     requested_programme = None
@@ -745,6 +823,16 @@ def search_all_matching_programmes(user_question):
         level = (
             p["level"] or ""
         ).lower().strip()
+        duration = (
+            p["duration"] or ""
+        ).lower().strip()
+
+        if requested_duration:
+            if not duration_matches(
+                requested_duration,
+                duration
+            ):
+                continue
 
         normalized_programme = (
             normalize_programme_name(
@@ -758,17 +846,15 @@ def search_all_matching_programmes(user_question):
 
         if requested_programme:
             if requested_programme in {"ba bed", "bsc bed"}:
-
               requested_parts = set(
               requested_programme.split()
-            )
-
-            if not requested_parts.issubset(
-               programme_words
-            ):
-              continue
-        else:
-            if requested_programme not in programme_words:
+              )
+              if not requested_parts.issubset(
+                programme_words
+              ):
+                continue
+            else:
+              if requested_programme not in programme_words:
                 continue
         if requested_integrated:
             if level != "integrated":

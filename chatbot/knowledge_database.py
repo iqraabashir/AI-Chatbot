@@ -5,7 +5,7 @@ def get_connection():
 def create_tables():
     conn = get_connection()
     cursor = conn.cursor()
-    # Stores every main topic
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_topics(
             topic_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -14,7 +14,7 @@ def create_tables():
             description TEXT
         )
     """)
-    # Stores fields related to a topic
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_fields(
             field_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,7 +23,7 @@ def create_tables():
             FOREIGN KEY(topic_id) REFERENCES knowledge_topics(topic_id)
         )
     """)
-    # Stores the actual values
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS knowledge_values(
             value_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ def create_tables():
         )
     """)
 
-    # Stores latest university notifications
+  
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS notifications(
             notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,7 +48,7 @@ def create_tables():
         )
     """)
 
-    # Stores chat history
+   
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_history(
             chat_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -253,29 +253,36 @@ def get_search_records():
 def get_programmes():
 
     conn = sqlite3.connect(DATABASE_NAME)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT *
         FROM academic_programmes
-        ORDER BY programme_name
+        ORDER BY id ASC
     """)
-
     data = cursor.fetchall()
-
     conn.close()
-
     return data
 
 
 def add_programme(
-    programme_name,
-    programme_level,
+    programme,
+    specialization,
+    level,
     college,
     department,
     duration,
     eligibility,
     intake,
+    fee,
+    admission_process,
+    selection_process,
+    overview,
+    subject_overview,
+    programme_type,
+    school,
+    campus,
     source,
     url,
     last_updated
@@ -285,28 +292,48 @@ def add_programme(
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO academic_programmes(
-            programme_name,
-            programme_level,
+        INSERT INTO academic_programmes (
+            programme,
+            specialization,
+            level,
             college,
             department,
             duration,
+            programme_type,
+            school,
+            campus,
             eligibility,
             intake,
+            fee,
+            admission_process,
+            selection_process,
+            overview,
+            subject_overview,
             source,
             url,
             last_updated
         )
-
-        VALUES(?,?,?,?,?,?,?,?,?,?)
-    """,(
-        programme_name,
-        programme_level,
+        VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
+    """, (
+        programme,
+        specialization,
+        level,
         college,
         department,
         duration,
+        programme_type,
+        school,
+        campus,
         eligibility,
         intake,
+        fee,
+        admission_process,
+        selection_process,
+        overview,
+        subject_overview,
         source,
         url,
         last_updated
@@ -315,88 +342,103 @@ def add_programme(
     conn.commit()
     conn.close()
 
-def delete_programme(programme_id):
 
+def delete_programme(programme_id):
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
 
     cursor.execute("""
         DELETE FROM academic_programmes
-        WHERE programme_id=?
+        WHERE id = ?
     """, (programme_id,))
 
     conn.commit()
     conn.close()
 
 def get_programme(programme_id):
-
     conn = sqlite3.connect(DATABASE_NAME)
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT *
         FROM academic_programmes
-        WHERE programme_id=?
-    """,(programme_id,))
-
-    programme=cursor.fetchone()
-
+        WHERE id = ?
+    """, (programme_id,))
+    programme = cursor.fetchone()
     conn.close()
-
     return programme
-
 
 def update_programme(
     programme_id,
-    programme_name,
-    programme_level,
+    programme,
+    specialization,
+    level,
     college,
     department,
     duration,
+    programme_type,
+    school,
+    campus,
     eligibility,
     intake,
+    fee,
+    admission_process,
+    selection_process,
+    overview,
+    subject_overview,
     source,
     url,
     last_updated
 ):
 
-    conn=sqlite3.connect(DATABASE_NAME)
-    cursor=conn.cursor()
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
 
     cursor.execute("""
-
-    UPDATE academic_programmes
-
-    SET
-
-    programme_name=?,
-    programme_level=?,
-    college=?,
-    department=?,
-    duration=?,
-    eligibility=?,
-    intake=?,
-    source=?,
-    url=?,
-    last_updated=?
-
-    WHERE programme_id=?
-
-    """,(
-
-        programme_name,
-        programme_level,
+        UPDATE academic_programmes
+        SET
+            programme = ?,
+            specialization = ?,
+            level = ?,
+            college = ?,
+            department = ?,
+            duration = ?,
+            programme_type = ?,
+            school = ?,
+            campus = ?,
+            eligibility = ?,
+            intake = ?,
+            fee = ?,
+            admission_process = ?,
+            selection_process = ?,
+            overview = ?,
+            subject_overview = ?,
+            source = ?,
+            url = ?,
+            last_updated = ?
+        WHERE id = ?
+    """, (
+        programme,
+        specialization,
+        level,
         college,
         department,
         duration,
+        programme_type,
+        school,
+        campus,
         eligibility,
         intake,
+        fee,
+        admission_process,
+        selection_process,
+        overview,
+        subject_overview,
         source,
         url,
         last_updated,
         programme_id
-
     ))
-
     conn.commit()
     conn.close()

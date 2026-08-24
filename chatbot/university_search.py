@@ -15,7 +15,7 @@ def search_university(question):
     conn.close()
     question = (question or "").lower().strip()
 
-    # Remove punctuation
+  
     question = re.sub(
         r"[^a-z0-9\s@._-]",
         " ",
@@ -55,15 +55,15 @@ def search_university(question):
             record["email"] or ""
         ).lower()
 
-        # Exact field match
+      
         if field and field in question:
             current += 20
 
-        # Topic match
+       
         if topic and topic in question:
             current += 10
 
-        # Important keywords from field
+
         field_words = re.findall(
             r"[a-z0-9]+",
             field
@@ -73,7 +73,7 @@ def search_university(question):
             if len(word) > 2 and word in question:
                 current += 5
 
-        # Value match
+   
         value_words = re.findall(
             r"[a-z0-9]+",
             value
@@ -83,11 +83,11 @@ def search_university(question):
             if len(word) > 3 and word in question:
                 current += 2
 
-        # Email match
+      
         if email and email in question:
             current += 20
 
-        # University-related words
+      
         if "university" in question:
             current += 2
 

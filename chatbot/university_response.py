@@ -5,13 +5,13 @@ from chatbot.aliases import UNIVERSITY_ALIASES
 DATABASE_NAME = "chatbot/knowledge.db"
 def normalize_university_question(question):
     question = (question or "").lower().strip()
-    # Remove punctuation
+   
     question = re.sub(r"[^a-z0-9\s-]", " ", question)
 
-    # Normalize whitespace
+
     question = re.sub(r"\s+", " ", question).strip()
 
-    # Sort aliases from longest to shortest
+
     for alias, field in sorted(
         UNIVERSITY_ALIASES.items(),
         key=lambda x: len(x[0]),
@@ -70,12 +70,12 @@ def search_university_info(question):
             if field in normalized_question:
                 score += 300
 
-        # Words from field
+      
         for word in field.split():
             if len(word) > 2 and word in normalized_question:
                 score += 20
 
-        # Words from value
+    
         for word in value.split():
             if len(word) > 4 and word in normalized_question:
                 score += 1

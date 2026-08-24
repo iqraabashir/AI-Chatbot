@@ -34,49 +34,45 @@ PROGRAMME_ALIASES = {
 }
 
 UNIVERSITY_ALIASES = {
-    # "cus": "university name",
-    # "cus srinagar": "university name",
     "university name": "university name",
     "name of university": "university name",
 
-    # Established
+
     "when was the university established": "established",
     "when was cluster university established": "established",
     "year university established": "established",
 
-    # Vision
+
     "vision of cus": "vision",
     "what is the vision of cus": "vision",
     "university vision": "vision",
     "vision of university": "vision",
     "what is the university vision": "vision",
 
-    # Mission
+
     "mission of cus": "mission",
     "what is the mission of cus": "mission",
     "university mission": "mission",
     "mission of university": "mission",
     "what is the university mission": "mission",
 
-    # Purpose
     "university purpose": "purpose",
     "purpose of university": "purpose",
     "purpose of cus": "purpose",
     "what is the purpose of cus": "purpose",
 
-    # Type
+
     "university type": "university type",
     "type of university": "university type",
 
-    # Headquarters
     "university headquarters": "headquarters",
     "headquarters of university": "headquarters",
 
-    # Funding
+
     "university funding": "funding scheme",
     "funding scheme": "funding scheme",
 
-    # Constituent colleges
+   
     "constituent colleges": "constituent colleges",
     "constituent college": "constituent colleges",
     "colleges under university": "constituent colleges",
@@ -86,29 +82,28 @@ UNIVERSITY_ALIASES = {
     "what colleges are under cluster university": "constituent colleges",
     "what colleges are under cus": "constituent colleges",
 
-    # Chancellor
+    
     "chancellor": "chancellor",
     "who is the chancellor": "chancellor",
     "university chancellor": "chancellor",
 
-    # Vice Chancellor
+  
     "vice chancellor": "vice chancellor",
     "vice-chancellor": "vice chancellor",
     "vc": "vice chancellor",
     "university vice chancellor": "vice chancellor",
     "who is the vice chancellor": "vice chancellor",
 
-    # Pro Chancellor
     "pro chancellor": "pro chancellor",
     "pro-chancellor": "pro chancellor",
     "university pro chancellor": "pro chancellor",
 
-    # Registrar
+  
     "registrar": "registrar",
     "university registrar": "registrar",
     "who is the registrar": "registrar",
 
-    # Controller of Examinations
+   
     "controller of examinations": "controller of examinations",
     "controller of examination": "controller of examinations",
     "controller of exams": "controller of examinations",
@@ -121,7 +116,7 @@ UNIVERSITY_ALIASES = {
     "controller of university exams": "controller of examinations",
     "controller of university examinations": "controller of examinations",
 
-    # University overview
+  
     "tell me about cus": "overview",
     "tell me about cluster university": "overview",
     "tell me about cluster university srinagar": "overview",
@@ -137,7 +132,7 @@ UNIVERSITY_ALIASES = {
     "overview of cus": "overview",
     "overview of cluster university": "overview",
 
-    # University location
+    
     "where is cus": "address",
     "where is cus located": "address",
     "where is cus located": "address",

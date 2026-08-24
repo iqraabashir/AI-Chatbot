@@ -85,8 +85,7 @@ def college_response(question):
     )   
 
     else:
-        return f"""
-🏛 <b>{college['college_name']}</b>
+        return f"""🏛 <b>{college['college_name']}</b>
 <b>Overview:</b> {college['overview']}
 <b>Principal:</b> {college['principal']}
 <b>Address:</b> {college['address']}
@@ -94,16 +93,10 @@ def college_response(question):
 <b>Programmes Offered:</b> {college['programmes_offered']}
 <b>Facilities:</b> {college['facilities']}
 🌐 <b>Website:</b>
-<a href="{college['website']}" target="_blank">
-Visit Official Website
-</a>
+<a href="{college['website']}" target="_blank">Visit Official Website</a>
 📧 <b>Email:</b>
-<a href="mailto:{college['official_email']}">
-{college['official_email']}
-</a>
+<a href="mailto:{college['official_email']}">{college['official_email']}</a>
 📍 <b>Google Maps:</b>
-<a href="{college['google_maps']}" target="_blank">
-View Location
-</a>
+<a href="{college['google_maps']}" target="_blank">View Location</a>
 """
     return "\n\n".join(answer)

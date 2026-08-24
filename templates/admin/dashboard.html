@@ -5,78 +5,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-
     <link rel="stylesheet"
           href="{{ url_for('static', filename='admin/admin.css') }}">
-
 </head>
-
 <body>
-
 <div class="sidebar">
-
-<h2>CUS AI Admin</h2>
-
-<a href="#">Dashboard</a>
-
-<a href="/admin/programmes">Academic Programmes</a>
-
-<a href="#">Admissions</a>
-
-<a href="#">Notifications</a>
-
-<a href="#">Colleges</a>
-
-<a href="#">Library</a>
-
-<a href="#">Scholarships</a>
-
-<a href="#">Student Services</a>
-
-<a href="/admin/logout">Logout</a>
-
+   <h2>CUS AI Admin</h2>
+   <a href="#">Dashboard</a>
+   <a href="/admin/programmes">
+      Academic Programmes
+    </a>
+   <a href="#" class="disabled-link">
+      Admissions
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="#" class="disabled-link">
+      Notifications
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="#" class="disabled-link">
+      Colleges
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="#" class="disabled-link">
+      Library
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="#" class="disabled-link">
+      Scholarships
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="#" class="disabled-link">
+      Student Services
+      <span class="nav-badge">Coming Soon</span>
+    </a>
+   <a href="/admin/logout">
+      Logout
+    </a>
 </div>
-
 <div class="content">
+    <h1>Dashboard</h1>
+    <div class="cards">
+        <a 
+            href="/admin/programmes" 
+            class="card card-active"
+        >
+            <div class="card-icon">
+              <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div class="card-content">
+            <h2>Academic Programmes</h2>
+            <p>Manage Courses</p>
+            </div>  
+        </a>
 
-<h1>Dashboard</h1>
-
-<div class="cards">
-
-<div class="card">
-<h2>Academic Programmes</h2>
-<p>Manage Courses</p>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2>Admissions</h2>
+            <span class="coming-soon"> 
+                Coming Soon 
+            </span>
+        </div>
+        <p>Manage Admission Information</p>
+    </div>
+</div>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2>Notifications</h2>
+            <span class="coming-soon"> 
+              Coming Soon 
+            </span>
+        </div>
+        <p>
+            Manage university notifications
+        </p>
+    </div>
+</div>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2> Colleges </h2>
+            <span class="coming-soon">
+                Coming soon
+            </span>
+        </div>
+        <p>
+            Manage College Information
+        </p>
+    </div>
+</div>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2> Library </h2>
+            <span class="coming-soon"> 
+                Coming Soon 
+            </span>
+        </div>
+        <p> Manage Library Information </p>
+    </div>
+</div>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2> Scholarships </h2> 
+            <span class="coming-soon"> 
+                Coming Soon 
+            </span>
+        </div>
+        <p> Manage Scholarship Information </p>
+    </div>
+</div>
+<div class="card card-disabled">
+    <div class="card-content">
+        <div class="card-title-row">
+            <h2> Student Services </h2> 
+            <span class="coming-soon"> 
+                Coming Soon 
+            </span>
+        </div>
+        <p>Manage Student Services</p>
+    </div>
 </div>
 
-<div class="card">
-<h2>Admissions</h2>
-<p>Manage Admission Information</p>
 </div>
-
-<div class="card">
-<h2>Notifications</h2>
-<p>Latest Notices</p>
 </div>
-
-<div class="card">
-<h2>Library</h2>
-<p>Manage Library Information</p>
-</div>
-
-<div class="card">
-<h2>Scholarships</h2>
-<p>Manage Scholarships</p>
-</div>
-
-<div class="card">
-<h2>Student Services</h2>
-<p>Manage Student Services</p>
-</div>
-
-</div>
-
-</div>
-
 </body>
-
 </html>

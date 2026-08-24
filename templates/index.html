@@ -41,13 +41,23 @@
                 </div>
             </div>
         </div>
-        <button
-            id="theme-btn"
-            class="theme-button"
-            title="Toggle dark mode"
-            aria-label="Toggle dark mode">
-            <i class="bi bi-moon-stars-fill"></i>
-        </button>
+        <div class="header-controls">
+            <button
+              id="clear-chat-btn"
+              class="clear-chat-button"
+              title="Clear chat"
+              aria-label="Clear chat">
+              <i class="bi bi-trash3"></i>
+            </button>
+
+            <button
+              id="theme-btn"
+              class="theme-button"
+              title="Toggle dark mode"
+              aria-label="Toggle dark mode">
+              <i class="bi bi-moon-stars-fill"></i>
+           </button>
+        </div>
     </header>
 
     <main class="assistant-panel">
@@ -60,19 +70,38 @@
                     <div class="sender-name">
                         CUS AI Assistant
                     </div>
+
                     <div class="bot-bubble">
                         <div class="welcome-title">
-                            How can I help you?
+                            Welcome to Cluster University of Srinagar
+                        </div>
+                        <div class="welcome-text">
+                           I’m the CUS AI Assistant. I can help you find information about
+                           programmes, admissions, colleges, eligibility, fees, and other
+                           university-related information.
+                        </div>
+                        <div class="welcome-hint">
+                           Ask your question below to get started.
                         </div>
                         <div class="time">
                             Just now
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
  
         <footer class="chat-footer">
+            <div class="language-selector"> 
+                <i class="bi bi-globe2"></i> 
+                <select
+                 id="language-select" aria-label="Select language" title="Select language"> 
+                 <option value="en">English</option> 
+                 <option value="ur">Urdu</option> 
+                 <option value="hi">Hindi</option> 
+                </select> 
+                <i class="bi bi-chevron-down language-arrow"></i> </div>
             <div class="input-wrapper">
                 <i class="bi bi-chat-left-text"></i>
                 <input
@@ -80,6 +109,14 @@
                     id="user-input"
                     placeholder="Ask your question..."
                     autocomplete="off">
+            <button
+                    type="button"
+                    id="voice-btn"
+                    class="voice-btn"
+                    title="Voice input"
+                    aria-label="Voice input">
+                    <i class="bi bi-mic-fill"></i>
+            </button>
             </div>
             <button
                 class="send-button"
@@ -98,36 +135,20 @@
                 Ask clear questions for better results.
             </span>
         </div>
-        <div class="disclaimer-main">
-            <div class="university-disclaimer">
-                <strong>
-                    Cluster University of Srinagar
-                </strong>
-                <span class="separator">•</span>
-                <span>
-                    AI-powered university information assistant
-                </span>
-            </div>
-            <div class="official-website">
-                <i class="bi bi-globe2"></i>
-                <span>
-                    Official Website:
-                </span>
-                <a
-                    href="https://www.cusrinagar.edu.in/"
-                    target="_blank"
-                    rel="noopener noreferrer">
-                    cusrinagar.edu.in
-                </a>
-            </div>
-        </div>
         <div class="disclaimer-note">
             <i class="bi bi-shield-check"></i>
             <span>
                 AI-generated responses may contain inaccuracies.
                 Please verify important information with official
-                university sources.
+                university sources:
             </span>
+            <i class="bi bi-globe2"></i>
+            <a
+                href="https://www.cusrinagar.edu.in/"
+                target="_blank"
+                rel="noopener noreferrer">
+                cusrinagar.edu.in
+            </a>
         </div>
     </div>
 </div>

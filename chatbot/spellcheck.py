@@ -14,50 +14,29 @@ def get_connection():
 
 
 def normalize_text(text):
-    """
-    Normalize text for comparison.
-
-    Treats "&" and "and" as equivalent.
-    This is only for spell-check comparison.
-    It does NOT change database values.
-    """
-
     text = (text or "").lower().strip()
-
-    # Treat "&" and "and" as the same word
     text = text.replace("&", " and ")
-
     text = re.sub(
         r"[^a-z0-9\s]",
         " ",
         text
     )
-
     text = re.sub(
         r"\s+",
         " ",
         text
     )
-
     return text.strip()
 
-
 def get_subjects():
-    """
-    Get unique programme subjects/specializations
-    from the existing academic_programmes table.
-    """
-
     conn = get_connection()
     cursor = conn.cursor()
-
     cursor.execute("""
         SELECT specialization
         FROM academic_programmes
         WHERE specialization IS NOT NULL
           AND TRIM(specialization) != ''
     """)
-
     rows = cursor.fetchall()
     conn.close()
 
@@ -132,10 +111,6 @@ def calculate_subject_score(user_text, subject):
 
     if not user_text or not subject:
         return 0
-
-    # --------------------------------------------------
-    # EXACT MATCH
-    # --------------------------------------------------
 
     if user_text == subject:
         return 1.0
@@ -261,11 +236,6 @@ def find_closest_subject(word, threshold=0.70):
     best_score = 0
 
     for subject in subjects:
-
-        # --------------------------------------------------
-        # CHECK ABBREVIATION
-        # --------------------------------------------------
-
         abbreviation_score = abbreviation_match(
             word,
             subject
@@ -277,27 +247,17 @@ def find_closest_subject(word, threshold=0.70):
 
         else:
 
-            # --------------------------------------------------
-            # CHECK SPELLING SIMILARITY
-            # --------------------------------------------------
-
             score = calculate_subject_score(
                 word,
                 subject
             )
 
-        # --------------------------------------------------
-        # KEEP BEST MATCH
-        # --------------------------------------------------
 
         if score > best_score:
 
             best_score = score
             best_subject = subject
 
-    # --------------------------------------------------
-    # APPLY THRESHOLD
-    # --------------------------------------------------
 
     if best_score >= threshold:
 

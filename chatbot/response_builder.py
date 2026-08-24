@@ -243,7 +243,6 @@ def build_response(user_question):
                 )
                 return response
 
-
             if result_type == "admission_notifications":
                 response = (
                     "🎓 <b>Latest Admission Notifications – "
