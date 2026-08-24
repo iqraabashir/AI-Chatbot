@@ -137,9 +137,6 @@ How can I apply for admission?
 
 What documents are required for admission?
 
-When does admission start?
-
-Can I ask questions using voice?
 ```
 
 The chatbot is designed to understand variations in how users phrase their questions.
@@ -148,13 +145,6 @@ The chatbot is designed to understand variations in how users phrase their quest
 
 Sensitive configuration and credentials are stored using environment variables.
 
-The following files should **not** be committed to the repository:
-
-```text
-.env
-*.key
-*.secret
-```
 
 Never expose API keys, passwords, database credentials, or other private credentials in source code or public repositories.
 
@@ -184,6 +174,16 @@ This project was developed as an **M.Sc. IT final-year project** with the aim of
 This chatbot is intended to assist users in finding university-related information. Information provided by the chatbot should be verified against official Cluster University Srinagar notifications and publications for important academic or admission decisions.
 
 ---
+---
+
+## 👩‍💻 Developed By
+
+**Iqra Bashir & Misbah Wani**  
+M.Sc. IT — Final Year  
+Cluster University Srinagar
+
+---
+
 
 **CUS AI Assistant**
 *Making university information easier to access through AI.*
